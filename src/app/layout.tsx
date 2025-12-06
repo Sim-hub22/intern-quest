@@ -2,6 +2,9 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "@/styles/globals.css";
 import { Navigation } from "@/components/navigation";
+import { ClerkProvider } from "@clerk/nextjs";
+import { shadcn } from '@clerk/themes'
+
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -27,13 +30,23 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
-        <Navigation/>
-        {children}
-      </body>
-    </html>
+    <ClerkProvider appearance={{
+      baseTheme: shadcn,
+      layout: {
+        socialButtonsPlacement: "bottom",
+        unsafe_disableDevelopmentModeWarnings: true
+      }
+    }}>
+      <html lang="en">
+        <body
+          className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        >
+          <main className="min-h-screen flex flex-col">
+            <Navigation/>
+            {children}
+          </main>
+        </body>
+      </html>
+    </ClerkProvider>
   );
 }

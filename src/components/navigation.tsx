@@ -4,6 +4,7 @@ import { Menu, X } from 'lucide-react';
 import Link from 'next/link';
 import { useState } from 'react';
 import { usePathname } from 'next/navigation';
+import { SignedIn, SignedOut, SignInButton, SignUpButton, UserButton } from '@clerk/nextjs';
 
 export function Navigation() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -53,21 +54,29 @@ export function Navigation() {
             <Link href="#about" className="text-gray-600 hover:text-[#2563EB] transition">
               About
             </Link>
-            <button 
-              className="text-gray-600 hover:text-[#2563EB] transition"
-              
-            >
-              <Link href="/login">
-              Login
-              </Link>
-            </button>
-            <button 
-              className="bg-[#2563EB] text-white px-6 py-2 rounded-lg hover:bg-[#1d4ed8] transition"
-            >
-              <Link href="/signup">
-              Get Started
-              </Link>
-            </button>
+
+            {/* Show if user is not logged in */}
+            <SignedOut>
+              <SignInButton>
+                <button 
+                  className="text-gray-600 hover:text-[#2563EB] transition"
+                >
+                  Login
+                </button>
+              </SignInButton>
+              <SignUpButton>
+                <button 
+                  className="bg-[#2563EB] text-white px-6 py-2 rounded-lg hover:bg-[#1d4ed8] transition"
+                >
+                  Get Started
+                </button>
+              </SignUpButton>
+            </SignedOut>
+
+            {/* Show if user is logged in */}
+            <SignedIn>
+              <UserButton />
+            </SignedIn>
           </div>
 
           {/* Mobile Menu button */}
@@ -107,20 +116,25 @@ export function Navigation() {
             <Link href="#about" className="block text-gray-600 hover:text-[#2563EB] transition">
               About
             </Link>
-            <button 
-              className="block w-full text-left text-gray-600 hover:text-[#2563EB] transition"
-            >
-              <Link href="/login">
-              Login
-              </Link>
-            </button>
-            <button 
-              className="w-full bg-[#2563EB] text-white px-6 py-2 rounded-lg hover:bg-[#1d4ed8] transition"
-            >
-              <Link href="/signup">
-              Get Started
-              </Link>
-            </button>
+            <SignedOut>
+              <button 
+                className="block w-full text-left text-gray-600 hover:text-[#2563EB] transition"
+              >
+                <Link href="/login">
+                Login
+                </Link>
+              </button>
+              <button 
+                className="w-full bg-[#2563EB] text-white px-6 py-2 rounded-lg hover:bg-[#1d4ed8] transition"
+              >
+                <Link href="/signup">
+                Get Started
+                </Link>
+              </button>
+            </SignedOut>
+            <SignedIn>
+              <UserButton />
+            </SignedIn>
           </div>
         )}
       </div>
