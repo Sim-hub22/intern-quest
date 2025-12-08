@@ -1,6 +1,15 @@
 {
-    "typescript.tsdk": "node_modules\\typescript\\lib",
-    "editor.formatOnSave": true,
-    "files.autoSave": "onWindowChange",
-    "editor.tabSize": 2
+  "editor.formatOnSave": true,
+  "editor.codeActionsOnSave": {
+    "source.fixAll": "always",
+    "source.organizeImports": "always"
+  },
+  "files.associations": {
+    "*.css": "tailwindcss"
+  },
+  "typescript.tsdk": "node_modules/typescript/lib",
+  "typescript.preferences.importModuleSpecifier": "non-relative",
+  "javascript.preferences.importModuleSpecifier": "non-relative",
+  "files.autoSave": "onWindowChange",
+  "editor.tabSize": 2
 }
