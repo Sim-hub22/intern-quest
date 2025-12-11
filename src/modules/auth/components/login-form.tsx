@@ -14,13 +14,11 @@ import SocialSigninButton from "@/modules/auth/components/social-signin-button";
 import { loginSchema } from "@/modules/auth/validations/auth-schema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { MailIcon } from "lucide-react";
-import { useRouter } from "next/navigation";
 import { Controller, useForm } from "react-hook-form";
+import { toast } from "sonner";
 import z from "zod";
 
 export function LoginForm() {
-  const router = useRouter();
-
   const form = useForm({
     resolver: zodResolver(loginSchema),
     defaultValues: {
@@ -31,8 +29,17 @@ export function LoginForm() {
   });
 
   const onSubmit = async (data: z.infer<typeof loginSchema>) => {
-    await authClient.signIn.email(data);
-    router.push("/");
+    await authClient.signIn.email({
+      email: data.email,
+      password: data.password,
+      rememberMe: data.rememberMe,
+      callbackURL: "/",
+      fetchOptions: {
+        onError: ({ error }) => {
+          toast.error(error.message || "Failed to sign in");
+        },
+      },
+    });
   };
 
   return (

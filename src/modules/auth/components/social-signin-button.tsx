@@ -2,22 +2,13 @@
 
 import { Button } from "@/components/ui/button";
 import { authClient } from "@/lib/auth-client";
-import { useRouter } from "next/navigation";
 
 export default function SocialSigninButton() {
-  const router = useRouter();
   const handleGoogleSignIn = async () => {
-    try {
-      const result = await authClient.signIn.social({
-        provider: "google",
-        callbackURL: "/",
-      });
-      if (!result.error) {
-        router.push("/");
-      }
-    } catch (error) {
-      console.error("Google sign in error:", error);
-    }
+    await authClient.signIn.social({
+      provider: "google",
+      callbackURL: "/",
+    });
   };
 
   return (

@@ -44,7 +44,7 @@ export default function UserProfile() {
 
   const handleLogout = async () => {
     await authClient.signOut();
-    router.push("/login");
+    router.push("/");
   };
 
   return (

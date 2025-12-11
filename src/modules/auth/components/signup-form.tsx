@@ -29,6 +29,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { Controller, useForm, useWatch } from "react-hook-form";
+import { toast } from "sonner";
 import z from "zod";
 
 const roles = [
@@ -69,6 +70,12 @@ export function SignupForm() {
       password: data.password,
       role: data.role,
       organization: data.organization,
+      callbackURL: "/",
+      fetchOptions: {
+        onError: ({ error }) => {
+          toast.error(error.message || "Failed to create account");
+        },
+      },
     });
   };
 
