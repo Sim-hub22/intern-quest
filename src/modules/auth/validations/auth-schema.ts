@@ -12,10 +12,10 @@ export const loginSchema = z.object({
 
 export const signupSchema = z
   .object({
-    name: z.string().check(z.minLength(1, "Name is required")),
+    name: z.string().check(z.minLength(1, "This field is required")),
     email: z
       .string()
-      .check(z.minLength(1, "Email is required"))
+      .check(z.minLength(1, "This field is required"))
       .check(z.email())
       .check(z.trim()),
     password: z
@@ -42,10 +42,15 @@ export const signupSchema = z
       .check(z.trim()),
     confirmPassword: z.string().check(z.minLength(1, "This field is required")),
     role: z.enum(["candidate", "recruiter", "admin"]).default("candidate"),
+    organization: z.string().optional(),
     agreeToTermsConditions: z.boolean().refine((val) => val === true, {
       message: "You must agree to the terms and conditions",
     }),
   })
   .refine((data) => data.password === data.confirmPassword, {
     message: "Passwords do not match",
+  })
+  .refine((data) => data.role !== "recruiter" || data.organization?.trim(), {
+    message: "This field is required",
+    path: ["organization"],
   });

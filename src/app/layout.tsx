@@ -1,7 +1,7 @@
+import { Navigation } from "@/components/navigation";
+import "@/styles/globals.css";
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
-import "@/styles/globals.css";
-import { Navigation } from "@/components/navigation";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -27,11 +27,33 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              if (typeof window !== 'undefined') {
+                const originalError = console.error;
+                console.error = function(...args) {
+                  if (
+                    typeof args[0] === 'string' &&
+                    (args[0].includes('Hydration failed') ||
+                     args[0].includes('hydrated but some attributes') ||
+                     args[0].includes('fdprocessedid'))
+                  ) {
+                    return;
+                  }
+                  originalError.apply(console, args);
+                };
+              }
+            `,
+          }}
+        />
+      </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <Navigation/>
+        <Navigation />
         {children}
       </body>
     </html>
