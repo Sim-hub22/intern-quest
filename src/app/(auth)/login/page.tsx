@@ -1,3 +1,4 @@
+import { Logo } from "@/components/logo";
 import { Button } from "@/components/ui/button";
 import { LoginForm } from "@/modules/auth/components/login-form";
 import { Metadata } from "next";
@@ -13,13 +14,8 @@ export default function LoginPage() {
     <div className="max-w-md w-full">
       {/* Logo */}
       <div className="text-center mb-8">
-        <Link href="/" className="inline-flex items-center gap-2 mb-6">
-          <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center">
-            <span className="text-primary-foreground font-bold text-xl">
-              IQ
-            </span>
-          </div>
-          <span className="text-foreground text-xl">InternQuest</span>
+        <Link href="/">
+          <Logo />
         </Link>
         <h1 className="text-foreground mb-2">Sign In to Your Account</h1>
         <p className="text-muted-foreground">
