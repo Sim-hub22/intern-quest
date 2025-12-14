@@ -47,17 +47,29 @@ export const auth = betterAuth({
       overrideDefaultEmailVerification: true,
       sendVerificationOTP: async ({ email, otp, type }) => {
         switch (type) {
-          case "sign-in":
-            // Send sign-in OTP email
-            console.log(`Send sign-in OTP ${otp} to ${email}`);
-            break;
           case "email-verification":
             // Send email verification OTP email
-            console.log(`Send email verification OTP ${otp} to ${email}`);
+            // await resend.emails.send({
+            //   from: "InternQuest <onboarding@resend.dev>",
+            //   to: [email],
+            //   subject: "Verify your InternQuest account",
+            //   html: `Your verification code: ${otp}`,
+            // });
+            console.log(
+              `[OTP]: You're verification code for ${email} is ${otp}`
+            );
             break;
-          default:
+          case "forget-password":
             // Send password reset OTP email
-            console.log(`Send password reset OTP ${otp} to ${email}`);
+            // await resend.emails.send({
+            //   from: "InternQuest <onboarding@resend.dev>",
+            //   to: [email],
+            //   subject: "Reset your InternQuest password",
+            //   html: `Your password reset code: ${otp}`,
+            // });
+            console.log(
+              `[OTP]: You're password reset code for ${email} is ${otp}`
+            );
             break;
         }
       },

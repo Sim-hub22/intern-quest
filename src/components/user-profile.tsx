@@ -52,10 +52,7 @@ export default function UserProfile() {
       <DropdownMenuTrigger asChild>
         <Button className="h-auto p-0 hover:bg-transparent" variant="ghost">
           <Avatar>
-            <AvatarImage
-              alt="Profile image"
-              src={user.image || "/avatar.jpg"}
-            />
+            <AvatarImage alt="Profile image" src={user.image || ""} />
             <AvatarFallback>{initials}</AvatarFallback>
           </Avatar>
           <ChevronDownIcon

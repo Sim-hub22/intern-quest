@@ -42,6 +42,7 @@ export function LoginForm({
 }: React.ComponentProps<"div">) {
   const router = useRouter();
   const { refetch } = authClient.useSession();
+  // Email Password Login
   const {
     form,
     action: { isExecuting },
@@ -68,6 +69,34 @@ export function LoginForm({
       },
     },
   });
+
+  // Google Login
+  // const googleLogin = useAction(googleLoginAction, {
+  //   onSuccess: async () => {
+  //     await refetch();
+  //     googleLogin.reset();
+  //     router.push("/");
+  //   },
+  //   onError: ({ error }) => {
+  //     toast.error(
+  //       error.serverError || "Something went wrong. Please try again."
+  //     );
+  //   },
+  // });
+
+  const handelGoogleLogin = async () => {
+    await authClient.signIn.social({
+      provider: "google",
+      callbackURL: "/",
+      fetchOptions: {
+        onError: ({ error }) => {
+          toast.error(
+            error.message || "Something went wrong. Please try again."
+          );
+        },
+      },
+    });
+  };
 
   return (
     <div className={cn("flex flex-col gap-6", className)} {...props}>
@@ -165,7 +194,11 @@ export function LoginForm({
                 Or continue with
               </FieldSeparator>
               <Field>
-                <Button variant="outline" type="button">
+                <Button
+                  variant="outline"
+                  type="button"
+                  onClick={handelGoogleLogin}
+                >
                   <GoogleIcon />
                   Login with Google
                 </Button>
