@@ -1,16 +1,16 @@
-import { z } from "zod";
+import { email, z } from "zod";
 
 export const loginSchema = z.object({
   email: z
     .string()
+    .check(z.minLength(1, "This field is required"))
     .check(z.email())
-    .check(z.minLength(1, "Email is required"))
     .check(z.trim()),
-  password: z.string().check(z.minLength(1, "Password is required")),
+  password: z.string().check(z.minLength(1, "This field is required")),
   rememberMe: z.boolean().optional(),
 });
 
-export const signupSchema = z
+export const signUpSchema = z
   .object({
     name: z.string().check(z.minLength(1, "This field is required")),
     email: z
@@ -23,11 +23,6 @@ export const signupSchema = z
       .check(z.minLength(1, { error: "This field is required" }))
       .check(
         z.minLength(8, { error: "Password must be at least 8 characters long" })
-      )
-      .check(
-        z.maxLength(100, {
-          error: "Password must be at most 100 characters long",
-        })
       )
       .check(
         z.regex(/[A-Z]/, {
@@ -43,14 +38,23 @@ export const signupSchema = z
     confirmPassword: z.string().check(z.minLength(1, "This field is required")),
     role: z.enum(["candidate", "recruiter", "admin"]).default("candidate"),
     organization: z.string().optional(),
-    agreeToTermsConditions: z.boolean().refine((val) => val === true, {
-      message: "You must agree to the terms and conditions",
-    }),
   })
   .refine((data) => data.password === data.confirmPassword, {
     message: "Passwords do not match",
+    path: ["confirmPassword"],
   })
   .refine((data) => data.role !== "recruiter" || data.organization?.trim(), {
     message: "This field is required",
     path: ["organization"],
   });
+
+export const otpSchema = z.object({
+  otp: z
+    .string()
+    .check(z.length(6, "OTP must be exactly 6 digits"))
+    .check(z.regex(/^\d+$/, "OTP must contain only numbers")),
+  email: z
+    .string()
+    .check(z.minLength(1, "This field is required"))
+    .check(email()),
+});

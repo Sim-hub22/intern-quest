@@ -1,13 +1,18 @@
-import React from "react";
+import { Logo } from "@/components/logo";
+import Link from "next/link";
 
-export default function AuthLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function AuthLayout({ children }: LayoutProps<"/">) {
   return (
-    <div className="grow bg-muted flex items-center justify-center px-4 sm:px-6 lg:px-8 py-12">
-      {children}
+    <div className="bg-muted flex grow flex-col items-center justify-center gap-6 p-6 md:p-10">
+      <div className="flex w-full max-w-sm flex-col gap-6">
+        <Link
+          href="/"
+          className="flex items-center gap-2 self-center font-medium"
+        >
+          <Logo />
+        </Link>
+        {children}
+      </div>
     </div>
   );
 }

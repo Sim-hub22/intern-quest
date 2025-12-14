@@ -17,11 +17,11 @@ export function PasswordInput(props: React.ComponentProps<typeof Input>) {
   };
 
   return (
-    <InputGroup className="bg-background">
+    <InputGroup>
       <InputGroupAddon>
         <LockIcon />
       </InputGroupAddon>
-      <InputGroupInput {...props} />
+      <InputGroupInput type={showPassword ? "text" : "password"} {...props} />
       <InputGroupAddon align="inline-end">
         <InputGroupButton onClick={togglePasswordVisibility}>
           {showPassword ? <EyeIcon /> : <EyeOffIcon />}
