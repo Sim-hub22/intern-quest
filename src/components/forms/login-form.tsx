@@ -31,6 +31,7 @@ import { loginSchema } from "@/validations/auth-schema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useHookFormAction } from "@next-safe-action/adapter-react-hook-form/hooks";
 import { MailIcon } from "lucide-react";
+
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Controller } from "react-hook-form";
@@ -71,20 +72,7 @@ export function LoginForm({
   });
 
   // Google Login
-  // const googleLogin = useAction(googleLoginAction, {
-  //   onSuccess: async () => {
-  //     await refetch();
-  //     googleLogin.reset();
-  //     router.push("/");
-  //   },
-  //   onError: ({ error }) => {
-  //     toast.error(
-  //       error.serverError || "Something went wrong. Please try again."
-  //     );
-  //   },
-  // });
-
-  const handelGoogleLogin = async () => {
+  const handleGoogleLogin = async () => {
     await authClient.signIn.social({
       provider: "google",
       callbackURL: "/",
@@ -197,10 +185,10 @@ export function LoginForm({
                 <Button
                   variant="outline"
                   type="button"
-                  onClick={handelGoogleLogin}
+                  onClick={handleGoogleLogin}
                 >
                   <GoogleIcon />
-                  Login with Google
+                  <span className="ml-2">Login with Google</span>
                 </Button>
                 <FieldDescription className="text-center">
                   Don&apos;t have an account?{" "}

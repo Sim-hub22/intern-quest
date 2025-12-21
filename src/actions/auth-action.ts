@@ -25,14 +25,6 @@ export const loginAction = actionClient
     return { success: true };
   });
 
-export const googleLoginAction = actionClient.action(async () => {
-  await auth.api.signInSocial({
-    body: {
-      provider: "google",
-    },
-  });
-});
-
 export const signUpAction = actionClient
   .inputSchema(signUpSchema)
   .action(async ({ parsedInput }) => {
