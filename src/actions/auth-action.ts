@@ -15,14 +15,39 @@ import z from "zod";
 export const loginAction = actionClient
   .inputSchema(loginSchema)
   .action(async ({ parsedInput }) => {
-    await auth.api.signInEmail({
-      body: {
-        email: parsedInput.email,
-        password: parsedInput.password,
-        rememberMe: parsedInput.rememberMe,
-      },
-    });
-    return { success: true };
+    try {
+      await auth.api.signInEmail({
+        body: {
+          email: parsedInput.email,
+          password: parsedInput.password,
+          rememberMe: parsedInput.rememberMe,
+        },
+      });
+      return { success: true };
+    } catch (error: any) {
+      // Check if error is due to unverified email (status 403)
+      if (error?.status === 403 || error?.statusCode === 403) {
+        // Automatically send verification OTP when email is unverified
+        try {
+          await auth.api.sendVerificationOTP({
+            body: {
+              email: parsedInput.email,
+              type: "email-verification",
+            },
+          });
+        } catch (otpError) {
+          // Log but don't fail if OTP sending fails
+          console.error("Failed to send verification OTP:", otpError);
+        }
+
+        return {
+          success: false,
+          requiresVerification: true,
+          email: parsedInput.email,
+        };
+      }
+      throw error;
+    }
   });
 
 export const signUpAction = actionClient

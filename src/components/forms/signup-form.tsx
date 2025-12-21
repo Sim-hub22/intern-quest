@@ -77,7 +77,7 @@ export function SignupForm({
         resetFormAndAction();
         const urlSearchParams = new URLSearchParams();
         urlSearchParams.set("email", input.email);
-        router.push(`/otp?${urlSearchParams}`);
+        router.push(`/verify-email?${urlSearchParams}`);
       },
       onError: ({ error }) => {
         toast.error(

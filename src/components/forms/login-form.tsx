@@ -51,7 +51,18 @@ export function LoginForm({
     resetFormAndAction,
   } = useHookFormAction(loginAction, zodResolver(loginSchema), {
     actionProps: {
-      onSuccess: async () => {
+      onSuccess: async ({ data }) => {
+        // Check if email verification is required
+        if (data?.requiresVerification) {
+          const urlSearchParams = new URLSearchParams();
+          urlSearchParams.set("email", data.email);
+          router.push(`/verify-email?${urlSearchParams}`);
+          toast.info("Please verify your email", {
+            description: "We've sent a verification code to your email",
+          });
+          return;
+        }
+
         await refetch();
         resetFormAndAction();
         router.push("/");
@@ -159,6 +170,7 @@ export function LoginForm({
                     data-invalid={fieldState.invalid}
                   >
                     <Checkbox
+                      id={field.name}
                       name={field.name}
                       aria-invalid={fieldState.invalid}
                       checked={field.value}
