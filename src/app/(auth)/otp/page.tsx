@@ -1,4 +1,4 @@
-import { OTPForm } from "@/components/forms/otp-form";
+import { VerifyEmailOTPForm } from "@/components/forms/verify-email-otp-form";
 import { redirect } from "next/navigation";
 
 export default async function OTPPage(props: PageProps<"/otp">) {
@@ -9,5 +9,5 @@ export default async function OTPPage(props: PageProps<"/otp">) {
     redirect("/signup");
   }
 
-  return <OTPForm email={email} />;
+  return <VerifyEmailOTPForm email={email} />;
 }

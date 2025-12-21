@@ -1,8 +1,8 @@
 "use client";
 
 import {
-  sendVerificationOTPAction,
-  verifyEmailOTPAction,
+  checkResetPasswordOTPAction,
+  forgotPasswordAction,
 } from "@/actions/auth-action";
 import { Button } from "@/components/ui/button";
 import {
@@ -25,7 +25,6 @@ import {
   InputOTPSlot,
 } from "@/components/ui/input-otp";
 import { Spinner } from "@/components/ui/spinner";
-import { authClient } from "@/lib/auth-client";
 import { otpSchema } from "@/validations/auth-schema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useHookFormAction } from "@next-safe-action/adapter-react-hook-form/hooks";
@@ -34,28 +33,32 @@ import { useRouter } from "next/navigation";
 import { Controller } from "react-hook-form";
 import { toast } from "sonner";
 
-interface OTPFormProps extends React.ComponentProps<typeof Card> {
+interface VerifyResetOTPFormProps extends React.ComponentProps<typeof Card> {
   email: string;
 }
 
-export function OTPForm({ email, ...props }: OTPFormProps) {
+export function VerifyResetOTPForm({
+  email,
+  ...props
+}: VerifyResetOTPFormProps) {
   const router = useRouter();
-  const { refetch } = authClient.useSession();
   const {
     form,
     action: { isExecuting },
     handleSubmitWithAction,
-    resetFormAndAction,
-  } = useHookFormAction(verifyEmailOTPAction, zodResolver(otpSchema), {
+  } = useHookFormAction(checkResetPasswordOTPAction, zodResolver(otpSchema), {
     actionProps: {
-      onSuccess: async () => {
-        await refetch();
-        resetFormAndAction();
-        router.push("/");
+      onSuccess: ({ input }) => {
+        // Navigate to the same page with verified params
+        const params = new URLSearchParams();
+        params.set("email", email);
+        params.set("verified", "true");
+        params.set("otp", input.otp);
+        router.push(`/reset-password?${params.toString()}`);
       },
       onError: ({ error }) => {
         toast.error(
-          error.serverError || "Something went wrong. Please try again."
+          error.serverError || "Invalid or expired code. Please try again."
         );
       },
     },
@@ -67,7 +70,7 @@ export function OTPForm({ email, ...props }: OTPFormProps) {
     },
   });
 
-  const resend = useAction(sendVerificationOTPAction, {
+  const resend = useAction(forgotPasswordAction, {
     onSuccess: () => {
       toast.success("New code sent!", {
         description: `We've sent a new code to ${email}`,
@@ -83,8 +86,10 @@ export function OTPForm({ email, ...props }: OTPFormProps) {
   return (
     <Card {...props}>
       <CardHeader className="text-center">
-        <CardTitle className="text-xl">Enter verification code</CardTitle>
-        <CardDescription>We sent a 6-digit code to your email.</CardDescription>
+        <CardTitle className="text-xl">Verify your identity</CardTitle>
+        <CardDescription>
+          We sent a 6-digit code to {email}. Enter it below to continue.
+        </CardDescription>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmitWithAction}>
@@ -130,10 +135,7 @@ export function OTPForm({ email, ...props }: OTPFormProps) {
                 variant="link"
                 className="p-0 h-fit"
                 onClick={() => {
-                  resend.execute({
-                    email,
-                    type: "email-verification",
-                  });
+                  resend.execute({ email });
                 }}
                 disabled={resend.isExecuting}
               >

@@ -3,8 +3,11 @@
 import { auth } from "@/lib/auth";
 import { actionClient } from "@/lib/safe-action";
 import {
+  forgotPasswordSchema,
   loginSchema,
   otpSchema,
+  resetPasswordSchema,
+  setNewPasswordSchema,
   signUpSchema,
 } from "@/validations/auth-schema";
 import z from "zod";
@@ -19,6 +22,7 @@ export const loginAction = actionClient
         rememberMe: parsedInput.rememberMe,
       },
     });
+    return { success: true };
   });
 
 export const googleLoginAction = actionClient.action(async () => {
@@ -41,6 +45,7 @@ export const signUpAction = actionClient
         organization: parsedInput.organization,
       },
     });
+    return { success: true };
   });
 
 export const sendVerificationOTPAction = actionClient
@@ -62,6 +67,7 @@ export const sendVerificationOTPAction = actionClient
         type: parsedInput.type,
       },
     });
+    return { success: true };
   });
 
 export const verifyEmailOTPAction = actionClient
@@ -73,4 +79,71 @@ export const verifyEmailOTPAction = actionClient
         otp: parsedInput.otp,
       },
     });
+    return { success: true };
+  });
+
+export const forgotPasswordAction = actionClient
+  .inputSchema(forgotPasswordSchema)
+  .action(async ({ parsedInput }) => {
+    await auth.api.forgetPasswordEmailOTP({
+      body: {
+        email: parsedInput.email,
+      },
+    });
+    return { success: true };
+  });
+
+export const resetPasswordAction = actionClient
+  .inputSchema(resetPasswordSchema)
+  .action(async ({ parsedInput }) => {
+    await auth.api.resetPasswordEmailOTP({
+      body: {
+        email: parsedInput.email,
+        otp: parsedInput.otp,
+        password: parsedInput.password,
+      },
+    });
+    return { success: true };
+  });
+
+export const verifyResetPasswordOTPAction = actionClient
+  .inputSchema(otpSchema)
+  .action(async ({ parsedInput }) => {
+    // Validates the OTP is correct without consuming it
+    const data = await auth.api.checkVerificationOTP({
+      body: {
+        email: parsedInput.email,
+        otp: parsedInput.otp,
+        type: "forget-password",
+      },
+    });
+    return data;
+  });
+
+export const checkResetPasswordOTPAction = actionClient
+  .inputSchema(otpSchema)
+  .action(async ({ parsedInput }) => {
+    // Validates the OTP is correct without consuming it
+    // Returns success if OTP is valid, throws error if invalid/expired
+    const data = await auth.api.checkVerificationOTP({
+      body: {
+        email: parsedInput.email,
+        otp: parsedInput.otp,
+        type: "forget-password",
+      },
+    });
+    return data;
+  });
+
+export const setNewPasswordAction = actionClient
+  .inputSchema(setNewPasswordSchema)
+  .action(async ({ parsedInput }) => {
+    await auth.api.resetPasswordEmailOTP({
+      body: {
+        email: parsedInput.email,
+        otp: parsedInput.otp,
+        password: parsedInput.password,
+      },
+    });
+    return { success: true };
   });

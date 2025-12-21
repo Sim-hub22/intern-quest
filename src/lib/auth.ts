@@ -1,5 +1,6 @@
 import { db } from "@/db"; // your drizzle instance
 import * as schema from "@/db/schema";
+import { sendPasswordResetEmail, sendVerificationEmail } from "@/lib/emails";
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { nextCookies } from "better-auth/next-js";
@@ -48,28 +49,10 @@ export const auth = betterAuth({
       sendVerificationOTP: async ({ email, otp, type }) => {
         switch (type) {
           case "email-verification":
-            // Send email verification OTP email
-            // await resend.emails.send({
-            //   from: "InternQuest <onboarding@resend.dev>",
-            //   to: [email],
-            //   subject: "Verify your InternQuest account",
-            //   html: `Your verification code: ${otp}`,
-            // });
-            console.log(
-              `[OTP]: You're verification code for ${email} is ${otp}`
-            );
+            void sendVerificationEmail({ email, otp });
             break;
           case "forget-password":
-            // Send password reset OTP email
-            // await resend.emails.send({
-            //   from: "InternQuest <onboarding@resend.dev>",
-            //   to: [email],
-            //   subject: "Reset your InternQuest password",
-            //   html: `Your password reset code: ${otp}`,
-            // });
-            console.log(
-              `[OTP]: You're password reset code for ${email} is ${otp}`
-            );
+            void sendPasswordResetEmail({ email, otp });
             break;
         }
       },
