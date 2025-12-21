@@ -274,7 +274,6 @@ export function SignupForm({
                     <PasswordInput
                       {...field}
                       id={field.name}
-                      type="passsword"
                       aria-invalid={fieldState.invalid}
                       placeholder="Create a password"
                       required
@@ -298,7 +297,6 @@ export function SignupForm({
                     <PasswordInput
                       {...field}
                       id={field.name}
-                      type="passsword"
                       aria-invalid={fieldState.invalid}
                       placeholder="Confirm your password"
                       required
