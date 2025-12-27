@@ -31,7 +31,9 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useHookFormAction } from "@next-safe-action/adapter-react-hook-form/hooks";
 import { useAction } from "next-safe-action/hooks";
 import { useRouter } from "next/navigation";
+import { useState } from "react";
 import { Controller } from "react-hook-form";
+import { useInterval } from "react-use";
 import { toast } from "sonner";
 
 interface VerifyEmailOTPFormProps extends React.ComponentProps<typeof Card> {
@@ -44,6 +46,16 @@ export function VerifyEmailOTPForm({
 }: VerifyEmailOTPFormProps) {
   const router = useRouter();
   const { refetch } = authClient.useSession();
+  const [countdown, setCountdown] = useState(0);
+
+  // Countdown timer using react-use's useInterval
+  useInterval(
+    () => {
+      setCountdown((prev) => prev - 1);
+    },
+    countdown > 0 ? 1000 : null
+  );
+
   const {
     form,
     action: { isExecuting },
@@ -72,6 +84,8 @@ export function VerifyEmailOTPForm({
 
   const resend = useAction(sendVerificationOTPAction, {
     onSuccess: () => {
+      // Start 60-second countdown after successful resend
+      setCountdown(60);
       toast.success("New code sent!", {
         description: `We've sent a new code to ${email}`,
       });
@@ -138,9 +152,9 @@ export function VerifyEmailOTPForm({
                     type: "email-verification",
                   });
                 }}
-                disabled={resend.isExecuting}
+                disabled={resend.isExecuting || countdown > 0}
               >
-                Resend
+                {countdown > 0 ? `Resend in ${countdown}s` : "Resend"}
               </Button>
             </FieldDescription>
           </FieldGroup>
