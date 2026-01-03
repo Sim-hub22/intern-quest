@@ -1,17 +1,9 @@
-import { MobileMenuButton } from "@/components/mobile-menu-button";
+import { AuthenticationActions } from "@/components/authentication-actions";
 import { NavigationButton } from "@/components/navigation-button";
-import { Button } from "@/components/ui/button";
 import { MENU_ITEMS } from "@/const/navigation";
-import { auth } from "@/lib/auth";
-import { headers } from "next/headers";
 import Link from "next/link";
-import UserProfile from "./user-profile";
 
-export async function Navigation() {
-  const sessionData = await auth.api.getSession({
-    headers: await headers(),
-  });
-
+export function Navigation() {
   return (
     <nav className="sticky top-0 z-50 bg-background shadow-sm border-b border-border">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -39,26 +31,7 @@ export async function Navigation() {
             ))}
           </div>
 
-          <div className="hidden md:flex gap-4">
-            {sessionData?.user ? (
-              <UserProfile user={sessionData.user} />
-            ) : (
-              <>
-                <Button
-                  variant="ghost"
-                  className="text-muted-foreground"
-                  asChild
-                >
-                  <Link href="/login">Login</Link>
-                </Button>
-                <Button asChild>
-                  <Link href="/signup">Get Started</Link>
-                </Button>
-              </>
-            )}
-          </div>
-
-          <MobileMenuButton user={sessionData?.user || null} />
+          <AuthenticationActions />
         </div>
       </div>
     </nav>

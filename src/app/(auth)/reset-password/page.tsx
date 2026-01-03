@@ -1,6 +1,13 @@
 import { SetNewPasswordForm } from "@/components/forms/set-new-password-form";
 import { VerifyResetOTPForm } from "@/components/forms/verify-reset-otp-form";
+import { Metadata } from "next";
 import { redirect } from "next/navigation";
+
+export const metadata: Metadata = {
+  title: "Reset Password",
+  description:
+    "Reset your password to regain access to your Intern Quest account.",
+};
 
 interface ResetPasswordPageProps {
   searchParams: Promise<{

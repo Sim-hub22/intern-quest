@@ -1,17 +1,26 @@
 "use client";
 
 import {
-  BoltIcon,
-  BookOpenIcon,
   ChevronDownIcon,
   ChevronsUpDown,
-  Layers2Icon,
+  CircleUserIcon,
+  LayoutDashboardIcon,
   LogOutIcon,
-  PinIcon,
-  UserPenIcon,
+  SettingsIcon,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { useState, useTransition } from "react";
 
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
@@ -23,8 +32,28 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Spinner } from "@/components/ui/spinner";
 import { authClient } from "@/lib/auth-client";
 import { User } from "better-auth";
+import Link from "next/link";
+
+const DROPDOWN_ITEMS = [
+  {
+    Icon: LayoutDashboardIcon,
+    label: "Dashboard",
+    href: "#",
+  },
+  {
+    Icon: CircleUserIcon,
+    label: "Profile",
+    href: "#",
+  },
+  {
+    Icon: SettingsIcon,
+    label: "Settings",
+    href: "#",
+  },
+];
 
 interface UserProfileProps {
   user: User;
@@ -32,6 +61,8 @@ interface UserProfileProps {
 
 export default function UserProfile({ user }: UserProfileProps) {
   const router = useRouter();
+  const [isLogoutDialogOpen, setIsLogoutDialogOpen] = useState(false);
+  const [isPending, startTransition] = useTransition();
 
   const initials =
     user.name
@@ -42,9 +73,16 @@ export default function UserProfile({ user }: UserProfileProps) {
     user.email?.[0]?.toUpperCase() ||
     "U";
 
-  const handleLogout = async () => {
-    await authClient.signOut();
-    router.push("/");
+  const handleLogout = () => {
+    startTransition(async () => {
+      await authClient.signOut({
+        fetchOptions: {
+          onSuccess: () => {
+            router.push("/");
+          },
+        },
+      });
+    });
   };
 
   return (
@@ -67,7 +105,7 @@ export default function UserProfile({ user }: UserProfileProps) {
           <ChevronsUpDown className="ml-auto size-4 md:hidden" />
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent className="max-w-64">
+      <DropdownMenuContent className="max-w-64" align="end">
         <DropdownMenuLabel className="flex min-w-0 flex-col">
           <span className="truncate font-medium text-foreground text-sm">
             {user.name || "User"}
@@ -78,36 +116,53 @@ export default function UserProfile({ user }: UserProfileProps) {
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuGroup>
-          <DropdownMenuItem>
-            <BoltIcon aria-hidden="true" className="opacity-60" size={16} />
-            <span>Option 1</span>
-          </DropdownMenuItem>
-          <DropdownMenuItem>
-            <Layers2Icon aria-hidden="true" className="opacity-60" size={16} />
-            <span>Option 2</span>
-          </DropdownMenuItem>
-          <DropdownMenuItem>
-            <BookOpenIcon aria-hidden="true" className="opacity-60" size={16} />
-            <span>Option 3</span>
-          </DropdownMenuItem>
+          {DROPDOWN_ITEMS.map(({ Icon, href, label }, idx) => (
+            <DropdownMenuItem key={`${label}-${idx}`} asChild>
+              <Link href={href}>
+                <Icon />
+                <span>{label}</span>
+              </Link>
+            </DropdownMenuItem>
+          ))}
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
-        <DropdownMenuGroup>
-          <DropdownMenuItem>
-            <PinIcon aria-hidden="true" className="opacity-60" size={16} />
-            <span>Option 4</span>
-          </DropdownMenuItem>
-          <DropdownMenuItem>
-            <UserPenIcon aria-hidden="true" className="opacity-60" size={16} />
-            <span>Option 5</span>
-          </DropdownMenuItem>
-        </DropdownMenuGroup>
-        <DropdownMenuSeparator />
-        <DropdownMenuItem onClick={handleLogout}>
-          <LogOutIcon aria-hidden="true" className="opacity-60" size={16} />
+        <DropdownMenuItem
+          onClick={() => setIsLogoutDialogOpen(true)}
+          variant="destructive"
+        >
+          <LogOutIcon />
           <span>Logout</span>
         </DropdownMenuItem>
       </DropdownMenuContent>
+
+      <AlertDialog
+        open={isLogoutDialogOpen}
+        onOpenChange={setIsLogoutDialogOpen}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              Are you sure you want to logout?
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              You will be logged out of your account and redirected to the home
+              page.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="min-w-20" disabled={isPending}>
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              className="min-w-20"
+              onClick={handleLogout}
+              disabled={isPending}
+            >
+              {isPending ? <Spinner /> : "Logout"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </DropdownMenu>
   );
 }
