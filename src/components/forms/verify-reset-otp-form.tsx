@@ -1,8 +1,8 @@
 "use client";
 
 import {
-  checkResetPasswordOTPAction,
   forgotPasswordAction,
+  verifyResetPasswordOTPAction,
 } from "@/actions/auth-action";
 import { Button } from "@/components/ui/button";
 import {
@@ -46,7 +46,7 @@ export function VerifyResetOTPForm({
     form,
     action: { isExecuting },
     handleSubmitWithAction,
-  } = useHookFormAction(checkResetPasswordOTPAction, zodResolver(otpSchema), {
+  } = useHookFormAction(verifyResetPasswordOTPAction, zodResolver(otpSchema), {
     actionProps: {
       onSuccess: ({ input }) => {
         // Navigate to the same page with verified params

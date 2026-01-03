@@ -24,6 +24,7 @@ export const loginAction = actionClient
         },
       });
       return { success: true };
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       // Check if error is due to unverified email (status 403)
       if (error?.status === 403 || error?.statusCode === 403) {
@@ -127,21 +128,6 @@ export const verifyResetPasswordOTPAction = actionClient
   .inputSchema(otpSchema)
   .action(async ({ parsedInput }) => {
     // Validates the OTP is correct without consuming it
-    const data = await auth.api.checkVerificationOTP({
-      body: {
-        email: parsedInput.email,
-        otp: parsedInput.otp,
-        type: "forget-password",
-      },
-    });
-    return data;
-  });
-
-export const checkResetPasswordOTPAction = actionClient
-  .inputSchema(otpSchema)
-  .action(async ({ parsedInput }) => {
-    // Validates the OTP is correct without consuming it
-    // Returns success if OTP is valid, throws error if invalid/expired
     const data = await auth.api.checkVerificationOTP({
       body: {
         email: parsedInput.email,

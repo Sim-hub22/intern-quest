@@ -193,7 +193,7 @@ export function SignupForm({
                       <InputGroupInput
                         {...field}
                         id={field.name}
-                        type="name"
+                        type="text"
                         aria-invalid={fieldState.invalid}
                         placeholder="Enter your name"
                         required

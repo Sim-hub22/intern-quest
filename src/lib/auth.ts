@@ -1,5 +1,6 @@
 import { db } from "@/db"; // your drizzle instance
 import * as schema from "@/db/schema";
+import { env } from "@/env";
 import { sendPasswordResetEmail, sendVerificationEmail } from "@/lib/emails";
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
@@ -37,8 +38,8 @@ export const auth = betterAuth({
   },
   socialProviders: {
     google: {
-      clientId: process.env.GOOGLE_CLIENT_ID!,
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+      clientId: env.GOOGLE_CLIENT_ID,
+      clientSecret: env.GOOGLE_CLIENT_SECRET,
     },
   },
   plugins: [

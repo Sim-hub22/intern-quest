@@ -1,4 +1,4 @@
-import { email, z } from "zod";
+import { z } from "zod";
 
 export const loginSchema = z.object({
   email: z
@@ -56,7 +56,7 @@ export const otpSchema = z.object({
   email: z
     .string()
     .check(z.minLength(1, "This field is required"))
-    .check(email()),
+    .check(z.email()),
 });
 
 export const forgotPasswordSchema = z.object({
