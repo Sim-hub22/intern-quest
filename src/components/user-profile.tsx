@@ -46,12 +46,12 @@ const DROPDOWN_ITEMS = [
   {
     Icon: CircleUserIcon,
     label: "Profile",
-    href: "#",
+    href: "/profile",
   },
   {
     Icon: SettingsIcon,
     label: "Settings",
-    href: "#",
+    href: "/settings",
   },
 ];
 
