@@ -1,17 +1,16 @@
-"use client";
-
+import { MobileMenuButton } from "@/components/mobile-menu-button";
+import { NavigationButton } from "@/components/navigation-button";
 import { Button } from "@/components/ui/button";
-import { authClient } from "@/lib/auth-client";
-import { Menu, X } from "lucide-react";
+import { MENU_ITEMS } from "@/const/navigation";
+import { auth } from "@/lib/auth";
+import { headers } from "next/headers";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { useState } from "react";
 import UserProfile from "./user-profile";
 
-export function Navigation() {
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const pathname = usePathname();
-  const { data: session } = authClient.useSession();
+export async function Navigation() {
+  const sessionData = await auth.api.getSession({
+    headers: await headers(),
+  });
 
   return (
     <nav className="sticky top-0 z-50 bg-background shadow-sm border-b border-border">
@@ -31,45 +30,18 @@ export function Navigation() {
 
           {/* Desktop Menu */}
           <div className="hidden md:flex items-center gap-2">
-            <Button
-              variant="ghost"
-              className={
-                pathname === "/" ? "text-primary" : "text-muted-foreground"
-              }
-              asChild
-            >
-              <Link href="/">Home</Link>
-            </Button>
-            <Button
-              variant="ghost"
-              className={
-                pathname === "/internships"
-                  ? "text-primary"
-                  : "text-muted-foreground"
-              }
-              asChild
-            >
-              <Link href="/internships">Internships</Link>
-            </Button>
-            <Button
-              variant="ghost"
-              className={
-                pathname === "/resources"
-                  ? "text-primary"
-                  : "text-muted-foreground"
-              }
-              asChild
-            >
-              <Link href="/resources">Resources</Link>
-            </Button>
-            <Button variant="ghost" className="text-muted-foreground" asChild>
-              <Link href="#about">About</Link>
-            </Button>
+            {MENU_ITEMS.map((item) => (
+              <NavigationButton
+                key={item.href}
+                href={item.href}
+                label={item.label}
+              />
+            ))}
           </div>
 
           <div className="hidden md:flex gap-4">
-            {session?.user ? (
-              <UserProfile />
+            {sessionData?.user ? (
+              <UserProfile user={sessionData.user} />
             ) : (
               <>
                 <Button
@@ -86,76 +58,8 @@ export function Navigation() {
             )}
           </div>
 
-          {/* Mobile Menu button */}
-          <Button
-            variant="ghost"
-            size="icon"
-            className="md:hidden"
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          >
-            {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
-          </Button>
+          <MobileMenuButton user={sessionData?.user || null} />
         </div>
-
-        {/* Mobile Menu */}
-        {mobileMenuOpen && (
-          <div className="md:hidden py-4 space-y-4">
-            <Button
-              variant="ghost"
-              className={`w-full justify-start ${
-                pathname === "/" ? "text-primary" : "text-muted-foreground"
-              }`}
-              asChild
-            >
-              <Link href="/">Home</Link>
-            </Button>
-            <Button
-              variant="ghost"
-              className={`w-full justify-start ${
-                pathname === "/internships"
-                  ? "text-primary"
-                  : "text-muted-foreground"
-              }`}
-              asChild
-            >
-              <Link href="/internships">Internships</Link>
-            </Button>
-            <Button
-              variant="ghost"
-              className={`w-full justify-start ${
-                pathname === "/resources"
-                  ? "text-primary"
-                  : "text-muted-foreground"
-              }`}
-              asChild
-            >
-              <Link href="/resources">Resources</Link>
-            </Button>
-            <Button
-              variant="ghost"
-              className="w-full justify-start text-muted-foreground"
-              asChild
-            >
-              <Link href="#about">About</Link>
-            </Button>
-            {session?.user ? (
-              <UserProfile />
-            ) : (
-              <>
-                <Button
-                  variant="ghost"
-                  className="w-full justify-start text-muted-foreground"
-                  asChild
-                >
-                  <Link href="/login">Login</Link>
-                </Button>
-                <Button className="w-full" asChild>
-                  <Link href="/signup">Get Started</Link>
-                </Button>
-              </>
-            )}
-          </div>
-        )}
       </div>
     </nav>
   );

@@ -4,6 +4,7 @@ import {
   BoltIcon,
   BookOpenIcon,
   ChevronDownIcon,
+  ChevronsUpDown,
   Layers2Icon,
   LogOutIcon,
   PinIcon,
@@ -23,16 +24,15 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { authClient } from "@/lib/auth-client";
+import { User } from "better-auth";
 
-export default function UserProfile() {
+interface UserProfileProps {
+  user: User;
+}
+
+export default function UserProfile({ user }: UserProfileProps) {
   const router = useRouter();
-  const { data: session } = authClient.useSession();
 
-  if (!session?.user) {
-    return null;
-  }
-
-  const user = session.user;
   const initials =
     user.name
       ?.split(" ")
@@ -50,16 +50,21 @@ export default function UserProfile() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button className="h-auto p-0 hover:bg-transparent" variant="ghost">
+        <Button className="h-auto lg:hover:bg-transparent" variant="ghost">
           <Avatar>
             <AvatarImage alt="Profile image" src={user.image || ""} />
             <AvatarFallback>{initials}</AvatarFallback>
           </Avatar>
           <ChevronDownIcon
             aria-hidden="true"
-            className="opacity-60"
+            className="opacity-60 hidden md:inline-block"
             size={16}
           />
+          <div className="grid flex-1 text-left text-sm leading-tight md:hidden">
+            <span className="truncate font-medium">{user.name}</span>
+            <span className="truncate text-xs">{user.email}</span>
+          </div>
+          <ChevronsUpDown className="ml-auto size-4 md:hidden" />
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent className="max-w-64">
