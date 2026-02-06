@@ -1,5 +1,7 @@
 import { SetNewPasswordForm } from "@/components/forms/set-new-password-form";
+import { Logo } from "@/components/logo";
 import { Metadata } from "next";
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
 
@@ -43,5 +45,15 @@ async function ResetPasswordPage({ searchParams }: ResetPasswordPageProps) {
     redirect(`/forgot-password/verify?${urlSearchParams.toString()}`);
   }
 
-  return <SetNewPasswordForm email={email} otp={otp} />;
+  return (
+    <div className="flex w-full max-w-sm flex-col gap-6">
+      <Link
+        href="/"
+        className="flex items-center gap-2 self-center font-medium"
+      >
+        <Logo />
+      </Link>
+      <SetNewPasswordForm email={email} otp={otp} />
+    </div>
+  );
 }

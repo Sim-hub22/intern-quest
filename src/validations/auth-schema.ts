@@ -22,21 +22,23 @@ export const signUpSchema = z
       .string()
       .check(z.minLength(1, { error: "This field is required" }))
       .check(
-        z.minLength(8, { error: "Password must be at least 8 characters long" })
+        z.minLength(8, {
+          error: "Password must be at least 8 characters long",
+        }),
       )
       .check(
         z.regex(/[A-Z]/, {
           error: "Password must contain at least one uppercase letter",
-        })
+        }),
       )
       .check(
         z.regex(/[a-z]/, {
           error: "Password must contain at least one lowercase letter",
-        })
+        }),
       )
       .check(z.trim()),
     confirmPassword: z.string().check(z.minLength(1, "This field is required")),
-    role: z.enum(["candidate", "recruiter", "admin"]).default("candidate"),
+    role: z.enum(["candidate", "recruiter"]).default("candidate"),
     organization: z.string().optional(),
   })
   .refine((data) => data.password === data.confirmPassword, {
@@ -82,17 +84,19 @@ export const resetPasswordSchema = z
       .string()
       .check(z.minLength(1, { error: "This field is required" }))
       .check(
-        z.minLength(8, { error: "Password must be at least 8 characters long" })
+        z.minLength(8, {
+          error: "Password must be at least 8 characters long",
+        }),
       )
       .check(
         z.regex(/[A-Z]/, {
           error: "Password must contain at least one uppercase letter",
-        })
+        }),
       )
       .check(
         z.regex(/[a-z]/, {
           error: "Password must contain at least one lowercase letter",
-        })
+        }),
       )
       .check(z.trim()),
     confirmPassword: z.string().check(z.minLength(1, "This field is required")),
@@ -117,17 +121,19 @@ export const setNewPasswordSchema = z
       .string()
       .check(z.minLength(1, { error: "This field is required" }))
       .check(
-        z.minLength(8, { error: "Password must be at least 8 characters long" })
+        z.minLength(8, {
+          error: "Password must be at least 8 characters long",
+        }),
       )
       .check(
         z.regex(/[A-Z]/, {
           error: "Password must contain at least one uppercase letter",
-        })
+        }),
       )
       .check(
         z.regex(/[a-z]/, {
           error: "Password must contain at least one lowercase letter",
-        })
+        }),
       )
       .check(z.trim()),
     confirmPassword: z.string().check(z.minLength(1, "This field is required")),

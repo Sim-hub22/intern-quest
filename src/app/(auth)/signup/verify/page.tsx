@@ -20,12 +20,18 @@ export default function Page(props: PageProps<"/signup/verify">) {
 }
 
 async function VerifyEmailPage(props: PageProps<"/signup/verify">) {
-  const { email } = (await props.searchParams) as { email?: string };
+  const { email, callbackUrl } = (await props.searchParams) as {
+    email?: string;
+    callbackUrl?: string;
+  };
 
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   if (!email || !emailRegex.test(email)) {
     redirect("/signup");
   }
+
+  const safeCallbackUrl =
+    callbackUrl && callbackUrl.startsWith("/") ? callbackUrl : undefined;
 
   return (
     <div className="flex w-full max-w-sm flex-col gap-6">
@@ -35,7 +41,7 @@ async function VerifyEmailPage(props: PageProps<"/signup/verify">) {
       >
         <Logo />
       </Link>
-      <VerifyEmailOTPForm email={email} />
+      <VerifyEmailOTPForm email={email} callbackUrl={safeCallbackUrl} />
     </div>
   );
 }

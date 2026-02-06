@@ -35,10 +35,11 @@ import { useTransition } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { toast } from "sonner";
 
-export function LoginForm({
-  className,
-  ...props
-}: React.ComponentProps<"div">) {
+interface LoginFormProps extends React.ComponentProps<"div"> {
+  callbackUrl?: string;
+}
+
+export function LoginForm({ className, callbackUrl, ...props }: LoginFormProps) {
   const router = useRouter();
   const [isGoogleLoading, startTransition] = useTransition();
   const { refetch } = authClient.useSession();
@@ -76,6 +77,9 @@ export function LoginForm({
 
         const urlSearchParams = new URLSearchParams();
         urlSearchParams.set("email", values.email);
+        if (callbackUrl && callbackUrl.startsWith("/")) {
+          urlSearchParams.set("callbackUrl", callbackUrl);
+        }
         router.push(`/signup/verify?${urlSearchParams}`);
         toast.info("Please verify your email", {
           description: "We've sent a verification code to your email",
@@ -89,7 +93,9 @@ export function LoginForm({
 
     await refetch();
     form.reset();
-    router.push("/");
+    const redirectTo =
+      callbackUrl && callbackUrl.startsWith("/") ? callbackUrl : "/";
+    router.push(redirectTo);
   });
 
   // Google Login
@@ -97,7 +103,7 @@ export function LoginForm({
     startTransition(async () => {
       await authClient.signIn.social({
         provider: "google",
-        callbackURL: "/",
+        callbackURL: callbackUrl && callbackUrl.startsWith("/") ? callbackUrl : "/",
         fetchOptions: {
           onError: ({ error }) => {
             toast.error(

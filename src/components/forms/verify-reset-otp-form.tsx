@@ -27,6 +27,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
+import { useInterval } from "react-use";
 import { toast } from "sonner";
 
 interface VerifyResetOTPFormProps extends React.ComponentProps<typeof Card> {
@@ -38,7 +39,14 @@ export function VerifyResetOTPForm({
   ...props
 }: VerifyResetOTPFormProps) {
   const router = useRouter();
+  const [countdown, setCountdown] = useState(0);
   const [isResending, setIsResending] = useState(false);
+
+  useInterval(
+    () => setCountdown((prev) => prev - 1),
+    countdown > 0 ? 1000 : null,
+  );
+
   const form = useForm({
     resolver: zodResolver(otpSchema),
     defaultValues: {
@@ -81,6 +89,7 @@ export function VerifyResetOTPForm({
       return;
     }
 
+    setCountdown(60);
     toast.success("New code sent!", {
       description: `We've sent a new code to ${email}`,
     });
@@ -138,9 +147,9 @@ export function VerifyResetOTPForm({
                 variant="link"
                 className="p-0 h-fit"
                 onClick={handleResend}
-                disabled={isResending}
+                disabled={isResending || countdown > 0}
               >
-                Resend
+                {countdown > 0 ? `Resend in ${countdown}s` : "Resend"}
               </Button>
             </FieldDescription>
           </FieldGroup>

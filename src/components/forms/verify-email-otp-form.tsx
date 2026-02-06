@@ -32,10 +32,12 @@ import { toast } from "sonner";
 
 interface VerifyEmailOTPFormProps extends React.ComponentProps<typeof Card> {
   email: string;
+  callbackUrl?: string;
 }
 
 export function VerifyEmailOTPForm({
   email,
+  callbackUrl,
   ...props
 }: VerifyEmailOTPFormProps) {
   const router = useRouter();
@@ -73,7 +75,9 @@ export function VerifyEmailOTPForm({
 
     await refetch();
     form.reset();
-    router.push("/");
+    const redirectTo =
+      callbackUrl && callbackUrl.startsWith("/") ? callbackUrl : "/";
+    router.push(redirectTo);
   });
 
   const handleResend = async () => {
