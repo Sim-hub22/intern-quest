@@ -1,9 +1,5 @@
 "use client";
 
-import {
-  forgotPasswordAction,
-  verifyResetPasswordOTPAction,
-} from "@/actions/auth-action";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -25,12 +21,13 @@ import {
   InputOTPSlot,
 } from "@/components/ui/input-otp";
 import { Spinner } from "@/components/ui/spinner";
+import { authClient } from "@/lib/auth-client";
 import { otpSchema } from "@/validations/auth-schema";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useHookFormAction } from "@next-safe-action/adapter-react-hook-form/hooks";
-import { useAction } from "next-safe-action/hooks";
 import { useRouter } from "next/navigation";
-import { Controller } from "react-hook-form";
+import { useState } from "react";
+import { Controller, useForm } from "react-hook-form";
+import { useInterval } from "react-use";
 import { toast } from "sonner";
 
 interface VerifyResetOTPFormProps extends React.ComponentProps<typeof Card> {
@@ -42,46 +39,61 @@ export function VerifyResetOTPForm({
   ...props
 }: VerifyResetOTPFormProps) {
   const router = useRouter();
-  const {
-    form,
-    action: { isExecuting },
-    handleSubmitWithAction,
-  } = useHookFormAction(verifyResetPasswordOTPAction, zodResolver(otpSchema), {
-    actionProps: {
-      onSuccess: ({ input }) => {
-        // Navigate to the same page with verified params
-        const params = new URLSearchParams();
-        params.set("email", email);
-        params.set("verified", "true");
-        params.set("otp", input.otp);
-        router.push(`/reset-password?${params.toString()}`);
-      },
-      onError: ({ error }) => {
-        toast.error(
-          error.serverError || "Invalid or expired code. Please try again."
-        );
-      },
+  const [countdown, setCountdown] = useState(0);
+  const [isResending, setIsResending] = useState(false);
+
+  useInterval(
+    () => setCountdown((prev) => prev - 1),
+    countdown > 0 ? 1000 : null,
+  );
+
+  const form = useForm({
+    resolver: zodResolver(otpSchema),
+    defaultValues: {
+      email,
+      otp: "",
     },
-    formProps: {
-      defaultValues: {
-        email,
-        otp: "",
-      },
-    },
+  });
+  const isSubmitting = form.formState.isSubmitting;
+
+  const handleSubmit = form.handleSubmit(async (values) => {
+    const { error } = await authClient.emailOtp.checkVerificationOtp({
+      email: values.email,
+      otp: values.otp,
+      type: "forget-password",
+    });
+
+    if (error) {
+      toast.error(
+        error.message || "Invalid or expired code. Please try again.",
+      );
+      return;
+    }
+
+    const params = new URLSearchParams();
+    params.set("email", email);
+    params.set("verified", "true");
+    params.set("otp", values.otp);
+    router.push(`/forgot-password/reset?${params.toString()}`);
   });
 
-  const resend = useAction(forgotPasswordAction, {
-    onSuccess: () => {
-      toast.success("New code sent!", {
-        description: `We've sent a new code to ${email}`,
-      });
-    },
-    onError: ({ error }) => {
-      toast.error(
-        error.serverError || "Something went wrong. Please try again."
-      );
-    },
-  });
+  const handleResend = async () => {
+    setIsResending(true);
+    const { error } = await authClient.emailOtp.requestPasswordReset({
+      email,
+    });
+    setIsResending(false);
+
+    if (error) {
+      toast.error(error.message || "Something went wrong. Please try again.");
+      return;
+    }
+
+    setCountdown(60);
+    toast.success("New code sent!", {
+      description: `We've sent a new code to ${email}`,
+    });
+  };
 
   return (
     <Card {...props}>
@@ -92,7 +104,7 @@ export function VerifyResetOTPForm({
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <form onSubmit={handleSubmitWithAction}>
+        <form onSubmit={handleSubmit}>
           <FieldGroup>
             <Controller
               control={form.control}
@@ -125,8 +137,8 @@ export function VerifyResetOTPForm({
                 </Field>
               )}
             />
-            <Button type="submit" disabled={isExecuting}>
-              {isExecuting ? <Spinner /> : "Verify"}
+            <Button type="submit" disabled={isSubmitting}>
+              {isSubmitting ? <Spinner /> : "Verify"}
             </Button>
             <FieldDescription className="text-center">
               Didn&apos;t receive the code?{" "}
@@ -134,12 +146,10 @@ export function VerifyResetOTPForm({
                 type="button"
                 variant="link"
                 className="p-0 h-fit"
-                onClick={() => {
-                  resend.execute({ email });
-                }}
-                disabled={resend.isExecuting}
+                onClick={handleResend}
+                disabled={isResending || countdown > 0}
               >
-                Resend
+                {countdown > 0 ? `Resend in ${countdown}s` : "Resend"}
               </Button>
             </FieldDescription>
           </FieldGroup>
