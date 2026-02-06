@@ -1,6 +1,5 @@
 "use client";
 
-import { loginAction } from "@/actions/auth-action";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -29,13 +28,11 @@ import { authClient } from "@/lib/auth-client";
 import { cn } from "@/lib/utils";
 import { loginSchema } from "@/validations/auth-schema";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useHookFormAction } from "@next-safe-action/adapter-react-hook-form/hooks";
 import { MailIcon } from "lucide-react";
-
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useTransition } from "react";
-import { Controller } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
 import { toast } from "sonner";
 
 export function LoginForm({
@@ -45,43 +42,54 @@ export function LoginForm({
   const router = useRouter();
   const [isGoogleLoading, startTransition] = useTransition();
   const { refetch } = authClient.useSession();
-  // Email Password Login
-  const {
-    form,
-    action: { isExecuting },
-    handleSubmitWithAction,
-    resetFormAndAction,
-  } = useHookFormAction(loginAction, zodResolver(loginSchema), {
-    actionProps: {
-      onSuccess: async ({ data }) => {
-        // Check if email verification is required
-        if (data?.requiresVerification) {
-          const urlSearchParams = new URLSearchParams();
-          urlSearchParams.set("email", data.email);
-          router.push(`/verify-email?${urlSearchParams}`);
-          toast.info("Please verify your email", {
-            description: "We've sent a verification code to your email",
+  const form = useForm({
+    resolver: zodResolver(loginSchema),
+    defaultValues: {
+      email: "",
+      password: "",
+      rememberMe: false,
+    },
+  });
+  const isSubmitting = form.formState.isSubmitting;
+
+  const handleSubmit = form.handleSubmit(async (values) => {
+    const { error } = await authClient.signIn.email({
+      email: values.email,
+      password: values.password,
+      rememberMe: values.rememberMe,
+    });
+
+    if (error) {
+      if (error.status === 403) {
+        const { error: otpError } =
+          await authClient.emailOtp.sendVerificationOtp({
+            email: values.email,
+            type: "email-verification",
           });
+
+        if (otpError) {
+          toast.error(
+            otpError.message || "Something went wrong. Please try again.",
+          );
           return;
         }
 
-        await refetch();
-        resetFormAndAction();
-        router.push("/");
-      },
-      onError: ({ error }) => {
-        toast.error(
-          error.serverError || "Something went wrong. Please try again.",
-        );
-      },
-    },
-    formProps: {
-      defaultValues: {
-        email: "",
-        password: "",
-        rememberMe: false,
-      },
-    },
+        const urlSearchParams = new URLSearchParams();
+        urlSearchParams.set("email", values.email);
+        router.push(`/signup/verify?${urlSearchParams}`);
+        toast.info("Please verify your email", {
+          description: "We've sent a verification code to your email",
+        });
+        return;
+      }
+
+      toast.error(error.message || "Something went wrong. Please try again.");
+      return;
+    }
+
+    await refetch();
+    form.reset();
+    router.push("/");
   });
 
   // Google Login
@@ -111,7 +119,7 @@ export function LoginForm({
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSubmitWithAction}>
+          <form onSubmit={handleSubmit}>
             <FieldGroup className="gap-4">
               <Controller
                 control={form.control}
@@ -190,8 +198,8 @@ export function LoginForm({
                 )}
               />
               <Field>
-                <Button type="submit" disabled={isExecuting}>
-                  {isExecuting ? <Spinner /> : "Login"}
+                <Button type="submit" disabled={isSubmitting}>
+                  {isSubmitting ? <Spinner /> : "Login"}
                 </Button>
               </Field>
               <FieldSeparator className="*:data-[slot=field-separator-content]:bg-card my-1">

@@ -1,6 +1,5 @@
 "use client";
 
-import { forgotPasswordAction } from "@/actions/auth-action";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -22,14 +21,14 @@ import {
   InputGroupInput,
 } from "@/components/ui/input-group";
 import { Spinner } from "@/components/ui/spinner";
+import { authClient } from "@/lib/auth-client";
 import { cn } from "@/lib/utils";
 import { forgotPasswordSchema } from "@/validations/auth-schema";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useHookFormAction } from "@next-safe-action/adapter-react-hook-form/hooks";
 import { ArrowLeftIcon, MailIcon } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Controller } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
 import { toast } from "sonner";
 
 export function ForgotPasswordForm({
@@ -37,35 +36,28 @@ export function ForgotPasswordForm({
   ...props
 }: React.ComponentProps<"div">) {
   const router = useRouter();
-  const {
-    form,
-    action: { isExecuting },
-    handleSubmitWithAction,
-    resetFormAndAction,
-  } = useHookFormAction(
-    forgotPasswordAction,
-    zodResolver(forgotPasswordSchema),
-    {
-      actionProps: {
-        onSuccess: async ({ input }) => {
-          resetFormAndAction();
-          const urlSearchParams = new URLSearchParams();
-          urlSearchParams.set("email", input.email);
-          router.push(`/reset-password?${urlSearchParams}`);
-        },
-        onError: ({ error }) => {
-          toast.error(
-            error.serverError || "Something went wrong. Please try again."
-          );
-        },
-      },
-      formProps: {
-        defaultValues: {
-          email: "",
-        },
-      },
+  const form = useForm({
+    resolver: zodResolver(forgotPasswordSchema),
+    defaultValues: {
+      email: "",
+    },
+  });
+  const isSubmitting = form.formState.isSubmitting;
+  const handleSubmit = form.handleSubmit(async (values) => {
+    const { error } = await authClient.emailOtp.requestPasswordReset({
+      email: values.email,
+    });
+
+    if (error) {
+      toast.error(error.message || "Something went wrong. Please try again.");
+      return;
     }
-  );
+
+    form.reset();
+    const urlSearchParams = new URLSearchParams();
+    urlSearchParams.set("email", values.email);
+    router.push(`/forgot-password/verify?${urlSearchParams}`);
+  });
 
   return (
     <div className={cn("flex flex-col gap-6", className)} {...props}>
@@ -78,7 +70,7 @@ export function ForgotPasswordForm({
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSubmitWithAction}>
+          <form onSubmit={handleSubmit}>
             <FieldGroup className="gap-4">
               <Controller
                 control={form.control}
@@ -106,8 +98,8 @@ export function ForgotPasswordForm({
                 )}
               />
               <Field>
-                <Button type="submit" disabled={isExecuting}>
-                  {isExecuting ? <Spinner /> : "Send reset code"}
+                <Button type="submit" disabled={isSubmitting}>
+                  {isSubmitting ? <Spinner /> : "Send reset code"}
                 </Button>
               </Field>
               <FieldDescription className="text-center">

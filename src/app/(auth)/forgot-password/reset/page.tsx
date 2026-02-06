@@ -1,5 +1,4 @@
 import { SetNewPasswordForm } from "@/components/forms/set-new-password-form";
-import { VerifyResetOTPForm } from "@/components/forms/verify-reset-otp-form";
 import { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
@@ -18,7 +17,9 @@ interface ResetPasswordPageProps {
   }>;
 }
 
-export default function Page({ searchParams }: PageProps<"/reset-password">) {
+export default function Page({
+  searchParams,
+}: PageProps<"/forgot-password/reset">) {
   return (
     <Suspense fallback={null}>
       <ResetPasswordPage searchParams={searchParams} />
@@ -36,11 +37,11 @@ async function ResetPasswordPage({ searchParams }: ResetPasswordPageProps) {
     redirect("/forgot-password");
   }
 
-  // If OTP is verified, show password reset form
-  if (verified && otp) {
-    return <SetNewPasswordForm email={email} otp={otp} />;
+  if (!verified || !otp) {
+    const urlSearchParams = new URLSearchParams();
+    urlSearchParams.set("email", email);
+    redirect(`/forgot-password/verify?${urlSearchParams.toString()}`);
   }
 
-  // Otherwise, show OTP verification form
-  return <VerifyResetOTPForm email={email} />;
+  return <SetNewPasswordForm email={email} otp={otp} />;
 }
