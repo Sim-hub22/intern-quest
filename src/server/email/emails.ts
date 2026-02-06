@@ -1,4 +1,4 @@
-import { resend } from "@/lib/resend";
+import { resend } from "@/server/email/resend";
 
 interface SendVerificationEmailParams {
   email: string;

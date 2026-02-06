@@ -1,7 +1,10 @@
-import { db } from "@/db"; // your drizzle instance
-import * as schema from "@/db/schema";
 import { env } from "@/env";
-import { sendPasswordResetEmail, sendVerificationEmail } from "@/lib/emails";
+import { db } from "@/server/db";
+import * as schema from "@/server/db/schema/auth";
+import {
+  sendPasswordResetEmail,
+  sendVerificationEmail,
+} from "@/server/email/emails";
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { nextCookies } from "better-auth/next-js";

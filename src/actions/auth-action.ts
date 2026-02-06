@@ -1,7 +1,7 @@
 "use server";
 
-import { auth } from "@/lib/auth";
 import { actionClient } from "@/lib/safe-action";
+import { auth } from "@/server/auth";
 import {
   forgotPasswordSchema,
   loginSchema,
@@ -76,7 +76,7 @@ export const sendVerificationOTPAction = actionClient
         type: z
           .enum(["sign-in", "email-verification", "forget-password"])
           .default("email-verification"),
-      })
+      }),
   )
   .action(async ({ parsedInput }) => {
     await auth.api.sendVerificationOTP({
