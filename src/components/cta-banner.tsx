@@ -1,4 +1,6 @@
-import { ArrowRight, Sparkles } from 'lucide-react';
+"use client";
+
+import { ArrowRight, Sparkles } from "lucide-react";
 
 export function CTABanner() {
   return (
@@ -17,19 +19,20 @@ export function CTABanner() {
         </div>
 
         {/* Content */}
-        <h2 className="text-white mb-4">
-          Start Your Internship Journey Today
-        </h2>
+        <h2 className="text-white mb-4">Start Your Internship Journey Today</h2>
         <p className="text-blue-100 text-lg mb-8 max-w-2xl mx-auto">
-          Join thousands of students who have found their perfect internship through InternQuest. 
-          Your dream career starts here.
+          Join thousands of students who have found their perfect internship
+          through InternQuest. Your dream career starts here.
         </p>
 
         {/* CTA Buttons */}
         <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
           <button className="bg-white text-[#2563EB] px-8 py-4 rounded-xl hover:bg-gray-50 transition-all shadow-xl hover:shadow-2xl hover:scale-105 flex items-center gap-2 group">
             <span>Create Account</span>
-            <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" />
+            <ArrowRight
+              size={20}
+              className="group-hover:translate-x-1 transition-transform"
+            />
           </button>
           <button className="bg-transparent text-white px-8 py-4 rounded-xl hover:bg-white/10 transition border-2 border-white/50 backdrop-blur-sm">
             Browse Internships

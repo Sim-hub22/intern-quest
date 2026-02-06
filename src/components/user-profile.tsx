@@ -41,7 +41,7 @@ const DROPDOWN_ITEMS = [
   {
     Icon: LayoutDashboardIcon,
     label: "Dashboard",
-    href: "#",
+    href: "/dashboard",
   },
   {
     Icon: CircleUserIcon,

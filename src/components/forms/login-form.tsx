@@ -34,6 +34,7 @@ import { MailIcon } from "lucide-react";
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useTransition } from "react";
 import { Controller } from "react-hook-form";
 import { toast } from "sonner";
 
@@ -42,6 +43,7 @@ export function LoginForm({
   ...props
 }: React.ComponentProps<"div">) {
   const router = useRouter();
+  const [isGoogleLoading, startTransition] = useTransition();
   const { refetch } = authClient.useSession();
   // Email Password Login
   const {
@@ -69,7 +71,7 @@ export function LoginForm({
       },
       onError: ({ error }) => {
         toast.error(
-          error.serverError || "Something went wrong. Please try again."
+          error.serverError || "Something went wrong. Please try again.",
         );
       },
     },
@@ -84,16 +86,18 @@ export function LoginForm({
 
   // Google Login
   const handleGoogleLogin = async () => {
-    await authClient.signIn.social({
-      provider: "google",
-      callbackURL: "/",
-      fetchOptions: {
-        onError: ({ error }) => {
-          toast.error(
-            error.message || "Something went wrong. Please try again."
-          );
+    startTransition(async () => {
+      await authClient.signIn.social({
+        provider: "google",
+        callbackURL: "/",
+        fetchOptions: {
+          onError: ({ error }) => {
+            toast.error(
+              error.message || "Something went wrong. Please try again.",
+            );
+          },
         },
-      },
+      });
     });
   };
 
@@ -198,9 +202,10 @@ export function LoginForm({
                   variant="outline"
                   type="button"
                   onClick={handleGoogleLogin}
+                  disabled={isGoogleLoading}
                 >
-                  <GoogleIcon />
-                  <span className="ml-2">Login with Google</span>
+                  {isGoogleLoading ? <Spinner /> : <GoogleIcon />}
+                  Login with Google
                 </Button>
                 <FieldDescription className="text-center">
                   Don&apos;t have an account?{" "}

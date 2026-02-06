@@ -1,5 +1,7 @@
-import { Search, ChevronDown } from 'lucide-react';
-import { ImageWithFallback } from './ui/image-with-fallback';
+"use client";
+
+import { ChevronDown, Search } from "lucide-react";
+import { ImageWithFallback } from "./ui/image-with-fallback";
 
 export function HeroSection() {
   return (
@@ -17,7 +19,8 @@ export function HeroSection() {
                 Find the Right Internship. Build Your Future.
               </h1>
               <p className="text-gray-600 text-lg">
-                A trusted platform connecting students with verified internship and training opportunities.
+                A trusted platform connecting students with verified internship
+                and training opportunities.
               </p>
             </div>
 
@@ -74,7 +77,7 @@ export function HeroSection() {
                 className="relative rounded-3xl shadow-2xl w-full h-auto object-cover"
               />
             </div>
-            
+
             {/* Floating Card */}
             <div className="absolute -bottom-6 -left-6 bg-white rounded-xl shadow-xl p-4 w-64">
               <div className="flex items-center gap-3">
@@ -83,7 +86,9 @@ export function HeroSection() {
                 </div>
                 <div>
                   <div className="text-[#1E293B]">Application Sent!</div>
-                  <div className="text-gray-500 text-sm">Google - SWE Intern</div>
+                  <div className="text-gray-500 text-sm">
+                    Google - SWE Intern
+                  </div>
                 </div>
               </div>
             </div>

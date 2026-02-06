@@ -1,4 +1,3 @@
-import { Navigation } from "@/components/navigation";
 import { Toaster } from "@/components/ui/sonner";
 import "@/styles/globals.css";
 import type { Metadata } from "next";
@@ -32,10 +31,7 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <main className="min-h-screen flex flex-col">
-          <Navigation />
-          {children}
-        </main>
+        {children}
         <Toaster position="top-center" richColors />
       </body>
     </html>

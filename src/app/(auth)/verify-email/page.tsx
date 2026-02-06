@@ -1,6 +1,7 @@
 import { VerifyEmailOTPForm } from "@/components/forms/verify-email-otp-form";
 import { Metadata } from "next";
 import { redirect } from "next/navigation";
+import { Suspense } from "react";
 
 export const metadata: Metadata = {
   title: "Verify Email",
@@ -8,9 +9,7 @@ export const metadata: Metadata = {
     "Verify your email address to complete your Intern Quest account setup.",
 };
 
-export default async function VerifyEmailPage(
-  props: PageProps<"/verify-email">
-) {
+async function VerifyEmailContent(props: PageProps<"/verify-email">) {
   const { email } = (await props.searchParams) as { email?: string };
 
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -19,4 +18,12 @@ export default async function VerifyEmailPage(
   }
 
   return <VerifyEmailOTPForm email={email} />;
+}
+
+export default function VerifyEmailPage(props: PageProps<"/verify-email">) {
+  return (
+    <Suspense>
+      <VerifyEmailContent {...props} />
+    </Suspense>
+  );
 }

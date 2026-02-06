@@ -2,6 +2,7 @@ import { SetNewPasswordForm } from "@/components/forms/set-new-password-form";
 import { VerifyResetOTPForm } from "@/components/forms/verify-reset-otp-form";
 import { Metadata } from "next";
 import { redirect } from "next/navigation";
+import { Suspense } from "react";
 
 export const metadata: Metadata = {
   title: "Reset Password",
@@ -17,9 +18,15 @@ interface ResetPasswordPageProps {
   }>;
 }
 
-export default async function ResetPasswordPage({
-  searchParams,
-}: ResetPasswordPageProps) {
+export default function Page({ searchParams }: PageProps<"/reset-password">) {
+  return (
+    <Suspense fallback={null}>
+      <ResetPasswordPage searchParams={searchParams} />
+    </Suspense>
+  );
+}
+
+async function ResetPasswordPage({ searchParams }: ResetPasswordPageProps) {
   const params = await searchParams;
   const email = params.email;
   const verified = params.verified === "true";

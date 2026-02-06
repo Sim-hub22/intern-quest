@@ -1,9 +1,9 @@
-import { Target, Users, Award, TrendingUp } from 'lucide-react';
-import { ImageWithFallback } from './ui/image-with-fallback';
+import { Award, Target, TrendingUp, Users } from "lucide-react";
+import { ImageWithFallback } from "./ui/image-with-fallback";
 
 export function AboutUs() {
   return (
-    <section className="py-20 bg-white">
+    <section id="about" className="py-20 bg-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid lg:grid-cols-2 gap-12 items-center mb-20">
           {/* Left Content */}
@@ -11,13 +11,22 @@ export function AboutUs() {
             <h2 className="text-[#1E293B] mb-6">About InternQuest</h2>
             <div className="space-y-4 text-gray-600 leading-relaxed">
               <p>
-                InternQuest is a dedicated platform built to bridge the gap between talented students and verified internship opportunities. We believe that every student deserves access to quality internships that can shape their career trajectory.
+                InternQuest is a dedicated platform built to bridge the gap
+                between talented students and verified internship opportunities.
+                We believe that every student deserves access to quality
+                internships that can shape their career trajectory.
               </p>
               <p>
-                Founded in 2023, our mission is to democratize access to professional opportunities by creating a transparent, merit-based system where students can discover, apply, and secure internships with confidence.
+                Founded in 2023, our mission is to democratize access to
+                professional opportunities by creating a transparent,
+                merit-based system where students can discover, apply, and
+                secure internships with confidence.
               </p>
               <p>
-                We work closely with leading companies across industries to ensure that every opportunity listed on our platform is verified, legitimate, and offers real value to aspiring professionals.
+                We work closely with leading companies across industries to
+                ensure that every opportunity listed on our platform is
+                verified, legitimate, and offers real value to aspiring
+                professionals.
               </p>
             </div>
 
