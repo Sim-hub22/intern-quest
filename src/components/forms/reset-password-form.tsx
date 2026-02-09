@@ -26,20 +26,18 @@ import { useRouter } from "next/navigation";
 import { Controller, useForm } from "react-hook-form";
 import { toast } from "sonner";
 
-interface SetNewPasswordFormProps extends React.ComponentProps<"div"> {
+interface ResetPasswordFormProps extends React.ComponentProps<"div"> {
   email: string;
   otp: string;
 }
 
-export function SetNewPasswordForm({
+export function ResetPasswordForm({
   email,
   otp,
   className,
   ...props
-}: SetNewPasswordFormProps) {
+}: ResetPasswordFormProps) {
   const router = useRouter();
-  const { refetch } = authClient.useSession();
-
   const form = useForm({
     resolver: zodResolver(setNewPasswordSchema),
     defaultValues: {
@@ -63,7 +61,6 @@ export function SetNewPasswordForm({
       },
       {
         onSuccess: async () => {
-          await refetch();
           form.reset();
           toast.success("Password reset successfully!", {
             description: "You can now login with your new password.",

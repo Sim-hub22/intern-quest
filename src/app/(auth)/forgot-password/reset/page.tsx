@@ -1,5 +1,5 @@
 import { AuthShell } from "@/components/auth-shell";
-import { SetNewPasswordForm } from "@/components/forms/set-new-password-form";
+import { ResetPasswordForm } from "@/components/forms/reset-password-form";
 import { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
@@ -42,7 +42,7 @@ async function ResetPasswordPage({
 
   return (
     <AuthShell>
-      <SetNewPasswordForm email={email} otp={otp} />
+      <ResetPasswordForm email={email} otp={otp} />
     </AuthShell>
   );
 }
