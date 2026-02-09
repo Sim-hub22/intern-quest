@@ -1,3 +1,6 @@
+"use client";
+
+import { Logo } from "@/components/logo";
 import { NavigationButton } from "@/components/navigation-button";
 import { Button } from "@/components/ui/button";
 import {
@@ -7,60 +10,58 @@ import {
   SheetHeader,
   SheetTrigger,
 } from "@/components/ui/sheet";
-import UserProfile from "@/components/user-profile";
 import { MENU_ITEMS } from "@/const/navigation";
-import { User } from "better-auth";
-import { Menu } from "lucide-react";
+import { useIsMobile } from "@/hooks/use-mobile";
+import {
+  Authenticated,
+  LoginButton,
+  SignupButton,
+  Unauthenticated,
+} from "@/lib/auth-client";
+import { ArrowRight, MenuIcon } from "lucide-react";
 import Link from "next/link";
 
-interface MobileMenuButtonProps {
-  user: User | null;
-}
+export function MobileMenuButton() {
+  const isMobile = useIsMobile();
 
-export function MobileMenuButton({ user }: MobileMenuButtonProps) {
+  if (!isMobile) return null;
+
   return (
     <Sheet>
       <SheetTrigger asChild>
         <Button variant="ghost" size="icon" className="md:hidden">
-          <Menu size={24} />
+          <MenuIcon className="size-6" />
         </Button>
       </SheetTrigger>
       <SheetContent>
         <SheetHeader>
-          <div className="flex items-center">
-            <Link href="/" className="flex items-center gap-2">
-              <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-                <span className="text-primary-foreground font-bold text-lg">
-                  IQ
-                </span>
-              </div>
-              <span className="text-foreground">InternQuest</span>
-            </Link>
-          </div>
+          <Logo />
         </SheetHeader>
-        <div className="flex flex-col gap-4 p-4">
+        <div className="flex flex-col gap-4 p-4 flex-1 justify-center">
           {MENU_ITEMS.map((item) => (
             <NavigationButton
               key={item.href}
               href={item.href}
-              label={item.label}
-              className="w-full justify-start"
-            />
+              className="w-full justify-center"
+              size="lg"
+            >
+              {item.label}
+            </NavigationButton>
           ))}
         </div>
         <SheetFooter>
-          {user ? (
-            <UserProfile user={user} />
-          ) : (
-            <>
-              <Button variant="outline" className="w-full " asChild>
-                <Link href="/login">Login</Link>
-              </Button>
-              <Button className="w-full" asChild>
-                <Link href="/signup">Get Started</Link>
-              </Button>
-            </>
-          )}
+          <Authenticated>
+            <Button size="lg" className="group" asChild>
+              <Link href="/dashboard">
+                Dashboard{" "}
+                <ArrowRight className="group-hover:translate-x-1 transition-transform duration-300" />
+              </Link>
+            </Button>
+          </Authenticated>
+          <Unauthenticated>
+            <LoginButton size="lg" variant="outline" className="w-full" />
+            <SignupButton size="lg" variant="default" className="w-full" />
+          </Unauthenticated>
         </SheetFooter>
       </SheetContent>
     </Sheet>

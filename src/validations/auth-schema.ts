@@ -20,23 +20,17 @@ export const signUpSchema = z
       .check(z.trim()),
     password: z
       .string()
-      .check(z.minLength(1, { error: "This field is required" }))
+      .check(z.minLength(1, "This field is required"))
+      .check(z.minLength(8, "Password must be at least 8 characters long"))
       .check(
-        z.minLength(8, { error: "Password must be at least 8 characters long" })
+        z.regex(/[A-Z]/, "Password must contain at least one uppercase letter"),
       )
       .check(
-        z.regex(/[A-Z]/, {
-          error: "Password must contain at least one uppercase letter",
-        })
-      )
-      .check(
-        z.regex(/[a-z]/, {
-          error: "Password must contain at least one lowercase letter",
-        })
+        z.regex(/[a-z]/, "Password must contain at least one lowercase letter"),
       )
       .check(z.trim()),
     confirmPassword: z.string().check(z.minLength(1, "This field is required")),
-    role: z.enum(["candidate", "recruiter", "admin"]).default("candidate"),
+    role: z.enum(["candidate", "recruiter"]).default("candidate"),
     organization: z.string().optional(),
   })
   .refine((data) => data.password === data.confirmPassword, {
@@ -80,19 +74,13 @@ export const resetPasswordSchema = z
       .check(z.regex(/^\d+$/, "OTP must contain only numbers")),
     password: z
       .string()
-      .check(z.minLength(1, { error: "This field is required" }))
+      .check(z.minLength(1, "This field is required"))
+      .check(z.minLength(8, "Password must be at least 8 characters long"))
       .check(
-        z.minLength(8, { error: "Password must be at least 8 characters long" })
+        z.regex(/[A-Z]/, "Password must contain at least one uppercase letter"),
       )
       .check(
-        z.regex(/[A-Z]/, {
-          error: "Password must contain at least one uppercase letter",
-        })
-      )
-      .check(
-        z.regex(/[a-z]/, {
-          error: "Password must contain at least one lowercase letter",
-        })
+        z.regex(/[a-z]/, "Password must contain at least one lowercase letter"),
       )
       .check(z.trim()),
     confirmPassword: z.string().check(z.minLength(1, "This field is required")),
@@ -115,19 +103,13 @@ export const setNewPasswordSchema = z
       .check(z.regex(/^\d+$/, "OTP must contain only numbers")),
     password: z
       .string()
-      .check(z.minLength(1, { error: "This field is required" }))
+      .check(z.minLength(1, "This field is required"))
+      .check(z.minLength(8, "Password must be at least 8 characters long"))
       .check(
-        z.minLength(8, { error: "Password must be at least 8 characters long" })
+        z.regex(/[A-Z]/, "Password must contain at least one uppercase letter"),
       )
       .check(
-        z.regex(/[A-Z]/, {
-          error: "Password must contain at least one uppercase letter",
-        })
-      )
-      .check(
-        z.regex(/[a-z]/, {
-          error: "Password must contain at least one lowercase letter",
-        })
+        z.regex(/[a-z]/, "Password must contain at least one lowercase letter"),
       )
       .check(z.trim()),
     confirmPassword: z.string().check(z.minLength(1, "This field is required")),
