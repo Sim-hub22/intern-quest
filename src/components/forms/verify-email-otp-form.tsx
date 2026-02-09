@@ -1,9 +1,5 @@
 "use client";
 
-import {
-  sendVerificationOTPAction,
-  verifyEmailOTPAction,
-} from "@/actions/auth-action";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -28,11 +24,9 @@ import { Spinner } from "@/components/ui/spinner";
 import { authClient } from "@/lib/auth-client";
 import { otpSchema } from "@/validations/auth-schema";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useHookFormAction } from "@next-safe-action/adapter-react-hook-form/hooks";
-import { useAction } from "next-safe-action/hooks";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
-import { Controller } from "react-hook-form";
+import { useState, useTransition } from "react";
+import { Controller, useForm } from "react-hook-form";
 import { useInterval } from "react-use";
 import { toast } from "sonner";
 
@@ -47,55 +41,68 @@ export function VerifyEmailOTPForm({
   const router = useRouter();
   const { refetch } = authClient.useSession();
   const [countdown, setCountdown] = useState(0);
+  const [isResending, startTransition] = useTransition();
 
   // Countdown timer using react-use's useInterval
   useInterval(
     () => {
       setCountdown((prev) => prev - 1);
     },
-    countdown > 0 ? 1000 : null
+    countdown > 0 ? 1000 : null,
   );
 
-  const {
-    form,
-    action: { isExecuting },
-    handleSubmitWithAction,
-    resetFormAndAction,
-  } = useHookFormAction(verifyEmailOTPAction, zodResolver(otpSchema), {
-    actionProps: {
-      onSuccess: async () => {
-        await refetch();
-        resetFormAndAction();
-        router.push("/");
-      },
-      onError: ({ error }) => {
-        toast.error(
-          error.serverError || "Something went wrong. Please try again."
-        );
-      },
-    },
-    formProps: {
-      defaultValues: {
-        email,
-        otp: "",
-      },
+  const form = useForm({
+    resolver: zodResolver(otpSchema),
+    defaultValues: {
+      email,
+      otp: "",
     },
   });
 
-  const resend = useAction(sendVerificationOTPAction, {
-    onSuccess: () => {
-      // Start 60-second countdown after successful resend
-      setCountdown(60);
-      toast.success("New code sent!", {
-        description: `We've sent a new code to ${email}`,
-      });
-    },
-    onError: ({ error }) => {
-      toast.error(
-        error.serverError || "Something went wrong. Please try again."
+  const onSubmit = async (values: { email: string; otp: string }) => {
+    await authClient.emailOtp.verifyEmail(
+      {
+        email: values.email,
+        otp: values.otp,
+      },
+      {
+        onSuccess: async () => {
+          await refetch();
+          form.reset();
+          router.push("/");
+        },
+        onError: ({ error }: { error?: { message?: string } }) => {
+          toast.error(
+            error?.message || "Something went wrong. Please try again.",
+          );
+        },
+      },
+    );
+  };
+
+  const handleResend = () =>
+    startTransition(async () => {
+      await authClient.emailOtp.sendVerificationOtp(
+        {
+          email,
+          type: "email-verification",
+        },
+        {
+          onSuccess: () => {
+            // Start 60-second countdown after successful resend
+            setCountdown(60);
+            toast.success("New code sent!", {
+              description: `We've sent a new code to ${email}`,
+            });
+          },
+          onError: ({ error }: { error?: { message?: string } }) => {
+            toast.error(
+              error?.message || "Something went wrong. Please try again.",
+            );
+          },
+        },
       );
-    },
-  });
+    });
 
   return (
     <Card {...props}>
@@ -104,7 +111,7 @@ export function VerifyEmailOTPForm({
         <CardDescription>We sent a 6-digit code to your email.</CardDescription>
       </CardHeader>
       <CardContent>
-        <form onSubmit={handleSubmitWithAction}>
+        <form onSubmit={form.handleSubmit(onSubmit)}>
           <FieldGroup>
             <Controller
               control={form.control}
@@ -137,26 +144,23 @@ export function VerifyEmailOTPForm({
                 </Field>
               )}
             />
-            <Button type="submit" disabled={isExecuting}>
-              {isExecuting ? <Spinner /> : "Verify"}
-            </Button>
-            <FieldDescription className="text-center">
-              Didn&apos;t receive the code?{" "}
-              <Button
-                type="button"
-                variant="link"
-                className="p-0 h-fit"
-                onClick={() => {
-                  resend.execute({
-                    email,
-                    type: "email-verification",
-                  });
-                }}
-                disabled={resend.isExecuting || countdown > 0}
-              >
-                {countdown > 0 ? `Resend in ${countdown}s` : "Resend"}
+            <Field>
+              <Button type="submit" disabled={form.formState.isSubmitting}>
+                {form.formState.isSubmitting ? <Spinner /> : "Verify"}
               </Button>
-            </FieldDescription>
+              <FieldDescription className="text-center">
+                Didn&apos;t receive the code?{" "}
+                <Button
+                  type="button"
+                  variant="link"
+                  className="p-0 h-fit"
+                  onClick={handleResend}
+                  disabled={isResending || countdown > 0}
+                >
+                  {countdown > 0 ? `Resend in ${countdown}s` : "Resend"}
+                </Button>
+              </FieldDescription>
+            </Field>
           </FieldGroup>
         </form>
       </CardContent>

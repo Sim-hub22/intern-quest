@@ -1,6 +1,5 @@
 "use client";
 
-import { signUpAction } from "@/actions/auth-action";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -32,7 +31,6 @@ import { authClient } from "@/lib/auth-client";
 import { cn } from "@/lib/utils";
 import { signUpSchema } from "@/validations/auth-schema";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useHookFormAction } from "@next-safe-action/adapter-react-hook-form/hooks";
 import {
   Building2Icon,
   GraduationCapIcon,
@@ -41,7 +39,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Controller, useWatch } from "react-hook-form";
+import { Controller, useForm, useWatch } from "react-hook-form";
 import { toast } from "sonner";
 
 const roles = [
@@ -64,40 +62,47 @@ export function SignupForm({
   ...props
 }: React.ComponentProps<"div">) {
   const router = useRouter();
-  const { refetch } = authClient.useSession();
-  const {
-    form,
-    action: { isExecuting },
-    handleSubmitWithAction,
-    resetFormAndAction,
-  } = useHookFormAction(signUpAction, zodResolver(signUpSchema), {
-    actionProps: {
-      onSuccess: async ({ input }) => {
-        await refetch();
-        resetFormAndAction();
-        const urlSearchParams = new URLSearchParams();
-        urlSearchParams.set("email", input.email);
-        router.push(`/verify-email?${urlSearchParams}`);
-      },
-      onError: ({ error }) => {
-        toast.error(
-          error.serverError || "Something went wrong. Please try again."
-        );
-      },
-    },
-    formProps: {
-      defaultValues: {
-        role: "candidate",
-        name: "",
-        email: "",
-        password: "",
-        confirmPassword: "",
-        organization: "",
-      },
+
+  const form = useForm({
+    resolver: zodResolver(signUpSchema),
+    defaultValues: {
+      role: "candidate",
+      name: "",
+      email: "",
+      password: "",
+      confirmPassword: "",
+      organization: "",
     },
   });
 
   const role = useWatch({ control: form.control, name: "role" });
+
+  const onSubmit = async (values: {
+    name: string;
+    email: string;
+    password: string;
+    role: "candidate" | "recruiter" | "admin";
+    organization?: string;
+  }) => {
+    await authClient.signUp.email(
+      {
+        ...values,
+      },
+      {
+        onSuccess: () => {
+          form.reset();
+          const urlSearchParams = new URLSearchParams();
+          urlSearchParams.set("email", values.email);
+          router.push(`/verify-email?${urlSearchParams.toString()}`);
+        },
+        onError: ({ error }) => {
+          toast.error(
+            error?.message || "Something went wrong. Please try again.",
+          );
+        },
+      },
+    );
+  };
 
   return (
     <div className={cn("flex flex-col gap-6", className)} {...props}>
@@ -109,7 +114,7 @@ export function SignupForm({
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSubmitWithAction}>
+          <form onSubmit={form.handleSubmit(onSubmit)}>
             <FieldGroup className="gap-4">
               <Controller
                 control={form.control}
@@ -143,7 +148,7 @@ export function SignupForm({
                                     className={cn(
                                       "size-10 rounded-full flex items-center justify-center text-3xl transition-all bg-muted",
                                       isSelected &&
-                                        "bg-primary text-primary-foreground"
+                                        "bg-primary text-primary-foreground",
                                     )}
                                   >
                                     {role.icon}
@@ -308,8 +313,8 @@ export function SignupForm({
                 )}
               />
               <Field>
-                <Button type="submit" disabled={isExecuting}>
-                  {isExecuting ? <Spinner /> : "Create Account"}
+                <Button type="submit" disabled={form.formState.isSubmitting}>
+                  {form.formState.isSubmitting ? <Spinner /> : "Create Account"}
                 </Button>
                 <FieldDescription className="text-center">
                   Already have an account? <Link href="/login">Login</Link>

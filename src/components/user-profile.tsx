@@ -35,9 +35,11 @@ import {
 import { Spinner } from "@/components/ui/spinner";
 import { authClient } from "@/lib/auth-client";
 import { User } from "better-auth";
+import { LucideIcon } from "lucide-react";
+import { Route } from "next";
 import Link from "next/link";
 
-const DROPDOWN_ITEMS = [
+const DROPDOWN_ITEMS: { Icon: LucideIcon; label: string; href: Route }[] = [
   {
     Icon: LayoutDashboardIcon,
     label: "Dashboard",

@@ -1,3 +1,4 @@
+import { AuthShell } from "@/components/auth-shell";
 import { SetNewPasswordForm } from "@/components/forms/set-new-password-form";
 import { VerifyResetOTPForm } from "@/components/forms/verify-reset-otp-form";
 import { Metadata } from "next";
@@ -38,9 +39,17 @@ async function ResetPasswordPage({ searchParams }: ResetPasswordPageProps) {
 
   // If OTP is verified, show password reset form
   if (verified && otp) {
-    return <SetNewPasswordForm email={email} otp={otp} />;
+    return (
+      <AuthShell>
+        <SetNewPasswordForm email={email} otp={otp} />
+      </AuthShell>
+    );
   }
 
   // Otherwise, show OTP verification form
-  return <VerifyResetOTPForm email={email} />;
+  return (
+    <AuthShell>
+      <VerifyResetOTPForm email={email} />
+    </AuthShell>
+  );
 }

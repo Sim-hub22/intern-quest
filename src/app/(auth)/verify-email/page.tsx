@@ -1,3 +1,4 @@
+import { AuthShell } from "@/components/auth-shell";
 import { VerifyEmailOTPForm } from "@/components/forms/verify-email-otp-form";
 import { Metadata } from "next";
 import { redirect } from "next/navigation";
@@ -17,7 +18,11 @@ async function VerifyEmailContent(props: PageProps<"/verify-email">) {
     redirect("/signup");
   }
 
-  return <VerifyEmailOTPForm email={email} />;
+  return (
+    <AuthShell>
+      <VerifyEmailOTPForm email={email} />
+    </AuthShell>
+  );
 }
 
 export default function VerifyEmailPage(props: PageProps<"/verify-email">) {

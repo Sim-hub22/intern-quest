@@ -1,3 +1,4 @@
+import { AuthShell } from "@/components/auth-shell";
 import { LoginForm } from "@/components/forms/login-form";
 import { Metadata } from "next";
 
@@ -8,5 +9,9 @@ export const metadata: Metadata = {
 };
 
 export default function LoginPage() {
-  return <LoginForm />;
+  return (
+    <AuthShell>
+      <LoginForm />
+    </AuthShell>
+  );
 }
