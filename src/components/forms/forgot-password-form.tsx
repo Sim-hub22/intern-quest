@@ -54,7 +54,7 @@ export function ForgotPasswordForm({
           form.reset();
           const urlSearchParams = new URLSearchParams();
           urlSearchParams.set("email", values.email);
-          router.push(`/reset-password?${urlSearchParams.toString()}`);
+          router.push(`/forgot-password/verify?${urlSearchParams.toString()}`);
         },
         onError: ({ error }: { error?: { message?: string } }) => {
           toast.error(

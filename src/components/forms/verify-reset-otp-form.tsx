@@ -56,12 +56,12 @@ export function VerifyResetOTPForm({
       },
       {
         onSuccess: () => {
-          // Navigate to the same page with verified params
+          // Navigate to the reset page with verified params
           const params = new URLSearchParams();
           params.set("email", email);
           params.set("verified", "true");
           params.set("otp", values.otp);
-          router.push(`/reset-password?${params.toString()}`);
+          router.push(`/forgot-password/reset?${params.toString()}`);
         },
         onError: ({ error }: { error?: { message?: string } }) => {
           toast.error(

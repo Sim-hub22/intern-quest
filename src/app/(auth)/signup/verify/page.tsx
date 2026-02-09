@@ -10,7 +10,7 @@ export const metadata: Metadata = {
     "Verify your email address to complete your Intern Quest account setup.",
 };
 
-async function VerifyEmailContent(props: PageProps<"/verify-email">) {
+async function VerifyEmailContent(props: PageProps<"/signup/verify">) {
   const { email } = (await props.searchParams) as { email?: string };
 
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -25,7 +25,7 @@ async function VerifyEmailContent(props: PageProps<"/verify-email">) {
   );
 }
 
-export default function VerifyEmailPage(props: PageProps<"/verify-email">) {
+export default function VerifyEmailPage(props: PageProps<"/signup/verify">) {
   return (
     <Suspense>
       <VerifyEmailContent {...props} />

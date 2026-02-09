@@ -83,7 +83,7 @@ export function LoginForm({
 
             const urlSearchParams = new URLSearchParams();
             urlSearchParams.set("email", values.email);
-            router.push(`/verify-email?${urlSearchParams.toString()}`);
+            router.push(`/signup/verify?${urlSearchParams.toString()}`);
             toast.info("Please verify your email", {
               description: "We've sent a verification code to your email",
             });

@@ -93,7 +93,7 @@ export function SignupForm({
           form.reset();
           const urlSearchParams = new URLSearchParams();
           urlSearchParams.set("email", values.email);
-          router.push(`/verify-email?${urlSearchParams.toString()}`);
+          router.push(`/signup/verify?${urlSearchParams.toString()}`);
         },
         onError: ({ error }) => {
           toast.error(
