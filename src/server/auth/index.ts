@@ -46,6 +46,12 @@ export const auth = betterAuth({
       clientSecret: env.GOOGLE_CLIENT_SECRET,
     },
   },
+  account: {
+    accountLinking: {
+      enabled: true,
+      trustedProviders: ["google"],
+    },
+  },
   trustedOrigins: [env.BETTER_AUTH_URL],
   session: {
     cookieCache: {
