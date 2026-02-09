@@ -17,9 +17,7 @@ export async function proxy(request: NextRequest) {
   if (isProtectedRoute && !sessionCookie) {
     const loginUrl = new URL("/login", request.url);
     const callbackUrl =
-      request.nextUrl.pathname +
-      request.nextUrl.search +
-      request.nextUrl.hash;
+      request.nextUrl.pathname + request.nextUrl.search + request.nextUrl.hash;
     loginUrl.searchParams.set("callbackUrl", callbackUrl);
     return NextResponse.redirect(loginUrl);
   }
@@ -28,7 +26,14 @@ export async function proxy(request: NextRequest) {
     return NextResponse.redirect(new URL("/dashboard", request.url));
   }
 
-  return NextResponse.next();
+  const requestHeaders = new Headers(request.headers);
+  requestHeaders.set("x-pathname", pathname);
+
+  return NextResponse.next({
+    request: {
+      headers: requestHeaders,
+    },
+  });
 }
 
 export const config = {

@@ -1,6 +1,7 @@
 import "server-only";
 
 import { auth } from "@/server/auth";
+import type { Route } from "next";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { cache } from "react";
@@ -21,7 +22,12 @@ export const verifySession = cache(async () => {
   });
 
   if (!session) {
-    redirect("/login");
+    const headersList = await headers();
+    const pathname = headersList.get("x-pathname");
+    const loginUrl = pathname
+      ? (`/login?callbackUrl=${encodeURIComponent(pathname)}` as Route)
+      : "/login";
+    redirect(loginUrl);
   }
 
   return session;

@@ -5,11 +5,11 @@ import {
   sendPasswordResetEmail,
   sendVerificationEmail,
 } from "@/server/email/emails";
-import { after } from "next/server";
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { nextCookies } from "better-auth/next-js";
 import { emailOTP } from "better-auth/plugins";
+import { after } from "next/server";
 
 export const auth = betterAuth({
   database: drizzleAdapter(db, {
@@ -47,6 +47,12 @@ export const auth = betterAuth({
     },
   },
   trustedOrigins: [env.BETTER_AUTH_URL],
+  session: {
+    cookieCache: {
+      enabled: true,
+      maxAge: 5 * 60,
+    },
+  },
   advanced: {
     useSecureCookies: env.NODE_ENV === "production",
     rateLimit: {
@@ -57,7 +63,6 @@ export const auth = betterAuth({
     },
   },
   plugins: [
-    nextCookies(),
     emailOTP({
       sendVerificationOnSignUp: true,
       overrideDefaultEmailVerification: true,
@@ -80,5 +85,6 @@ export const auth = betterAuth({
         }
       },
     }),
+    nextCookies(),
   ],
 });
