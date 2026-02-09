@@ -84,24 +84,20 @@ export function SignupForm({
     role: "candidate" | "recruiter" | "admin";
     organization?: string;
   }) => {
-    await authClient.signUp.email(
-      {
-        ...values,
-      },
-      {
-        onSuccess: () => {
-          form.reset();
-          const urlSearchParams = new URLSearchParams();
-          urlSearchParams.set("email", values.email);
-          router.push(`/signup/verify?${urlSearchParams.toString()}`);
-        },
-        onError: ({ error }) => {
-          toast.error(
-            error?.message || "Something went wrong. Please try again.",
-          );
-        },
-      },
-    );
+    const { data, error } = await authClient.signUp.email({
+      ...values,
+    });
+
+    if (error) {
+      console.error(error);
+      toast.error(error.message || "Something went wrong. Please try again.");
+      return;
+    }
+
+    form.reset();
+    const urlSearchParams = new URLSearchParams();
+    urlSearchParams.set("email", data.user.email);
+    router.push(`/signup/verify?${urlSearchParams.toString()}`);
   };
 
   return (

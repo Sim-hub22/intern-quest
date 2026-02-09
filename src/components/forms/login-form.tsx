@@ -29,6 +29,7 @@ import { cn } from "@/lib/utils";
 import { loginSchema } from "@/validations/auth-schema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { MailIcon } from "lucide-react";
+import { Route } from "next";
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -56,45 +57,41 @@ export function LoginForm({
     password: string;
     rememberMe?: boolean;
   }) => {
-    await authClient.signIn.email(
-      {
-        email: values.email,
-        password: values.password,
-        rememberMe: values.rememberMe,
-      },
-      {
-        onSuccess: async () => {
-          form.reset();
-          router.push("/");
-        },
-        onError: async ({ error }) => {
-          // Check if error is due to unverified email (status 403)
-          if (error?.status === 403) {
-            // Automatically send verification OTP when email is unverified
-            try {
-              await authClient.emailOtp.sendVerificationOtp({
-                email: values.email,
-                type: "email-verification",
-              });
-            } catch (otpError) {
-              // Log but don't fail if OTP sending fails
-              console.error("Failed to send verification OTP:", otpError);
-            }
+    const { data, error } = await authClient.signIn.email({
+      ...values,
+      callbackURL: "/dashboard",
+    });
 
-            const urlSearchParams = new URLSearchParams();
-            urlSearchParams.set("email", values.email);
-            router.push(`/signup/verify?${urlSearchParams.toString()}`);
-            toast.info("Please verify your email", {
-              description: "We've sent a verification code to your email",
-            });
-            return;
-          }
+    if (error) {
+      if (error.status === 403) {
+        const { error: otpError } =
+          await authClient.emailOtp.sendVerificationOtp({
+            email: values.email,
+            type: "email-verification",
+          });
+
+        if (otpError) {
+          console.error(otpError);
           toast.error(
-            error?.message || "Something went wrong. Please try again.",
+            otpError.message ||
+              "Failed to send verification OTP. Please try again.",
           );
-        },
-      },
-    );
+          return;
+        }
+
+        const urlSearchParams = new URLSearchParams();
+        urlSearchParams.set("email", values.email);
+        router.push(`/signup/verify?${urlSearchParams.toString()}`);
+        return;
+      }
+
+      console.error(error);
+      toast.error(error.message || "Something went wrong. Please try again.");
+      return;
+    }
+
+    form.reset();
+    router.push(data.url as Route);
   };
 
   // Google Login
@@ -102,9 +99,10 @@ export function LoginForm({
     startTransition(async () => {
       await authClient.signIn.social({
         provider: "google",
-        callbackURL: "/",
+        callbackURL: "/dashboard",
         fetchOptions: {
           onError: ({ error }) => {
+            console.error(error);
             toast.error(
               error.message || "Something went wrong. Please try again.",
             );
