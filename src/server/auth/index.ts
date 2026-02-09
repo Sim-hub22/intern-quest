@@ -5,6 +5,7 @@ import {
   sendPasswordResetEmail,
   sendVerificationEmail,
 } from "@/server/email/emails";
+import { after } from "next/server";
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { nextCookies } from "better-auth/next-js";
@@ -45,6 +46,16 @@ export const auth = betterAuth({
       clientSecret: env.GOOGLE_CLIENT_SECRET,
     },
   },
+  trustedOrigins: [env.BETTER_AUTH_URL],
+  advanced: {
+    useSecureCookies: env.NODE_ENV === "production",
+    rateLimit: {
+      enabled: true,
+      window: 60,
+      max: 10,
+      storage: "database",
+    },
+  },
   plugins: [
     nextCookies(),
     emailOTP({
@@ -53,10 +64,18 @@ export const auth = betterAuth({
       sendVerificationOTP: async ({ email, otp, type }) => {
         switch (type) {
           case "email-verification":
-            void sendVerificationEmail({ email, otp });
+            after(() =>
+              sendVerificationEmail({ email, otp }).catch((err) =>
+                console.error("Verification email failed", err),
+              ),
+            );
             break;
           case "forget-password":
-            void sendPasswordResetEmail({ email, otp });
+            after(() =>
+              sendPasswordResetEmail({ email, otp }).catch((err) =>
+                console.error("Password reset email failed", err),
+              ),
+            );
             break;
         }
       },

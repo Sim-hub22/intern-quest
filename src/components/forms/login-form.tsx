@@ -37,10 +37,15 @@ import { useTransition } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { toast } from "sonner";
 
+interface LoginFormProps extends React.ComponentProps<"div"> {
+  callbackUrl?: string;
+}
+
 export function LoginForm({
   className,
+  callbackUrl = "/dashboard",
   ...props
-}: React.ComponentProps<"div">) {
+}: LoginFormProps) {
   const router = useRouter();
   const [isGoogleLoading, startTransition] = useTransition();
   const form = useForm({
@@ -59,7 +64,7 @@ export function LoginForm({
   }) => {
     const { data, error } = await authClient.signIn.email({
       ...values,
-      callbackURL: "/dashboard",
+      callbackURL: callbackUrl,
     });
 
     if (error) {
@@ -99,7 +104,7 @@ export function LoginForm({
     startTransition(async () => {
       await authClient.signIn.social({
         provider: "google",
-        callbackURL: "/dashboard",
+        callbackURL: callbackUrl,
         fetchOptions: {
           onError: ({ error }) => {
             console.error(error);

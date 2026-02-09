@@ -1,6 +1,4 @@
-import { auth } from "@/server/auth";
-import { headers } from "next/headers";
-import { redirect } from "next/navigation";
+import { verifySession } from "@/lib/dal";
 import { Suspense } from "react";
 
 export default function Page() {
@@ -12,13 +10,8 @@ export default function Page() {
 }
 
 async function DashboardPage() {
-  const session = await auth.api.getSession({
-    headers: await headers(),
-  });
+  await verifySession();
 
-  if (!session) {
-    redirect("/login");
-  }
   return (
     <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
       <div className="grid auto-rows-min gap-4 md:grid-cols-3">
