@@ -10,6 +10,7 @@ import {
 import { createAuthClient } from "better-auth/react";
 import Link from "next/link";
 import { PropsWithChildren } from "react";
+import { toast } from "sonner";
 
 export const authClient = createAuthClient({
   plugins: [
@@ -17,18 +18,28 @@ export const authClient = createAuthClient({
     emailOTPClient(),
     adminClient(),
   ],
+  fetchOptions: {
+    onError: async (context) => {
+      const { response } = context;
+      if (response.status === 429) {
+        const retryAfter = response.headers.get("X-Retry-After");
+        console.error(`Rate limit exceeded. Retry after ${retryAfter} seconds`);
+        toast.error(`Rate limit exceeded. Retry after ${retryAfter} seconds`);
+        return;
+      }
+    },
+  },
 });
 
 export function Authenticated({ children }: PropsWithChildren) {
-  const { data, isPending } = authClient.useSession();
-  if (isPending || !data?.user) return null;
-
+  const { data } = authClient.useSession();
+  if (!data?.user) return null;
   return <>{children}</>;
 }
 
 export function Unauthenticated({ children }: PropsWithChildren) {
-  const { data, isPending } = authClient.useSession();
-  if (isPending || data?.user) return null;
+  const { data } = authClient.useSession();
+  if (data?.user) return null;
   return <>{children}</>;
 }
 

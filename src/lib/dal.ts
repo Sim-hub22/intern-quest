@@ -41,7 +41,10 @@ const ROLE = {
 
 type PlatformRole = (typeof ROLE)[keyof typeof ROLE];
 
-function hasRole(session: { user: { role?: string | null } }, allowed: PlatformRole[]): boolean {
+function hasRole(
+  session: { user: { role?: string | null } },
+  allowed: PlatformRole[],
+): boolean {
   const role = session.user?.role as PlatformRole | undefined;
   return role != null && allowed.includes(role);
 }

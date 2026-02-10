@@ -5,17 +5,32 @@ import {
   sendPasswordResetEmail,
   sendVerificationEmail,
 } from "@/server/email/emails";
+import { redis } from "@/server/redis";
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { nextCookies } from "better-auth/next-js";
-import { admin, emailOTP } from "better-auth/plugins";
+import { admin } from "better-auth/plugins/admin";
+import { emailOTP } from "better-auth/plugins/email-otp";
 import { after } from "next/server";
 
 export const auth = betterAuth({
+  appName: "InternQuest",
   database: drizzleAdapter(db, {
     provider: "pg",
     schema,
   }),
+  secondaryStorage: {
+    get: async (key) => {
+      return await redis.get(key);
+    },
+    set: async (key, value, ttl) => {
+      if (ttl) await redis.set(key, value, { ex: ttl });
+      else await redis.set(key, value);
+    },
+    delete: async (key) => {
+      await redis.del(key);
+    },
+  },
   user: {
     additionalFields: {
       role: {
@@ -62,10 +77,7 @@ export const auth = betterAuth({
   advanced: {
     useSecureCookies: env.NODE_ENV === "production",
     rateLimit: {
-      enabled: true,
-      window: 60,
-      max: 10,
-      storage: "database",
+      storage: "secondary-storage",
     },
   },
   plugins: [
