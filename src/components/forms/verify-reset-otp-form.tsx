@@ -36,7 +36,7 @@ export function VerifyResetOTPForm({
     }
 
     const params = new URLSearchParams();
-    params.set("email", email);
+    params.set("email", values.email);
     params.set("otp", values.otp);
     router.push(`/forgot-password/reset?${params.toString()}`);
   };

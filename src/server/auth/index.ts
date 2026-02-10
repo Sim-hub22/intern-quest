@@ -91,10 +91,10 @@ export const auth = betterAuth({
         }
       },
     }),
-    nextCookies(),
     admin({
       adminRoles: ["admin"],
       defaultRole: "candidate",
     }),
+    nextCookies(),
   ],
 });
