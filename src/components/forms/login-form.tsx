@@ -36,6 +36,7 @@ import { useRouter } from "next/navigation";
 import { useTransition } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { toast } from "sonner";
+import z from "zod";
 
 interface LoginFormProps extends React.ComponentProps<"div"> {
   callbackUrl?: string;
@@ -57,11 +58,7 @@ export function LoginForm({
     },
   });
 
-  const onSubmit = async (values: {
-    email: string;
-    password: string;
-    rememberMe?: boolean;
-  }) => {
+  const onSubmit = async (values: z.infer<typeof loginSchema>) => {
     const { data, error } = await authClient.signIn.email({
       ...values,
       callbackURL: callbackUrl,
@@ -76,7 +73,6 @@ export function LoginForm({
           });
 
         if (otpError) {
-          console.error(otpError);
           toast.error(
             otpError.message ||
               "Failed to send verification OTP. Please try again.",
@@ -90,7 +86,6 @@ export function LoginForm({
         return;
       }
 
-      console.error(error);
       toast.error(error.message || "Something went wrong. Please try again.");
       return;
     }
@@ -107,7 +102,6 @@ export function LoginForm({
         callbackURL: callbackUrl,
         fetchOptions: {
           onError: ({ error }) => {
-            console.error(error);
             toast.error(
               error.message || "Something went wrong. Please try again.",
             );

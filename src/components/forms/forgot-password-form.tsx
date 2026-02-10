@@ -30,6 +30,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Controller, useForm } from "react-hook-form";
 import { toast } from "sonner";
+import z from "zod";
 
 export function ForgotPasswordForm({
   className,
@@ -44,25 +45,20 @@ export function ForgotPasswordForm({
     },
   });
 
-  const onSubmit = async (values: { email: string }) => {
-    await authClient.emailOtp.requestPasswordReset(
-      {
-        email: values.email,
-      },
-      {
-        onSuccess: () => {
-          form.reset();
-          const urlSearchParams = new URLSearchParams();
-          urlSearchParams.set("email", values.email);
-          router.push(`/forgot-password/verify?${urlSearchParams.toString()}`);
-        },
-        onError: ({ error }: { error?: { message?: string } }) => {
-          toast.error(
-            error?.message || "Something went wrong. Please try again.",
-          );
-        },
-      },
-    );
+  const onSubmit = async (values: z.infer<typeof forgotPasswordSchema>) => {
+    const { error } = await authClient.emailOtp.requestPasswordReset({
+      email: values.email,
+    });
+
+    if (error) {
+      toast.error(error.message || "Something went wrong. Please try again.");
+      return;
+    }
+
+    form.reset();
+    const urlSearchParams = new URLSearchParams();
+    urlSearchParams.set("email", values.email);
+    router.push(`/forgot-password/verify?${urlSearchParams.toString()}`);
   };
 
   return (

@@ -32,3 +32,38 @@ export const verifySession = cache(async () => {
 
   return session;
 });
+
+const ROLE = {
+  ADMIN: "admin",
+  RECRUITER: "recruiter",
+  CANDIDATE: "candidate",
+} as const;
+
+type PlatformRole = (typeof ROLE)[keyof typeof ROLE];
+
+function hasRole(session: { user: { role?: string | null } }, allowed: PlatformRole[]): boolean {
+  const role = session.user?.role as PlatformRole | undefined;
+  return role != null && allowed.includes(role);
+}
+
+/**
+ * Verify session and require recruiter role. Redirects to /dashboard if not a recruiter.
+ */
+export const verifyRecruiterSession = cache(async () => {
+  const session = await verifySession();
+  if (!hasRole(session, [ROLE.RECRUITER])) {
+    redirect("/dashboard" as Route);
+  }
+  return session;
+});
+
+/**
+ * Verify session and require admin role. Redirects to /dashboard if not an admin.
+ */
+export const verifyAdminSession = cache(async () => {
+  const session = await verifySession();
+  if (!hasRole(session, [ROLE.ADMIN])) {
+    redirect("/dashboard" as Route);
+  }
+  return session;
+});

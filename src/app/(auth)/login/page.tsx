@@ -9,24 +9,16 @@ export const metadata: Metadata = {
     "Sign in to your Intern Quest account to access internship opportunities.",
 };
 
-export default function Page({
-  searchParams,
-}: {
-  searchParams: Promise<{ callbackUrl?: string }>;
-}) {
+export default function Page(props: PageProps<"/login">) {
   return (
     <Suspense fallback={null}>
-      <LoginPage searchParams={searchParams} />
+      <LoginPage {...props} />
     </Suspense>
   );
 }
 
-async function LoginPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ callbackUrl?: string }>;
-}) {
-  const params = await searchParams;
+async function LoginPage(props: PageProps<"/login">) {
+  const params = (await props.searchParams) as { callbackUrl?: string };
   const callbackUrl = params.callbackUrl || "/dashboard";
 
   return (

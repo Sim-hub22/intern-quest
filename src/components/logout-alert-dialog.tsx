@@ -27,17 +27,14 @@ export function LogoutAlertDialog(
   const handleLogout = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
     startTransition(async () => {
-      await authClient.signOut({
-        fetchOptions: {
-          onSuccess: () => {
-            router.push("/");
-          },
-          onError: ({ error }) => {
-            console.error(error);
-            toast.error("Failed to logout. Please try again.");
-          },
-        },
-      });
+      const { error } = await authClient.signOut();
+
+      if (error) {
+        toast.error(error.message || "Something went wrong. Please try again.");
+        return;
+      }
+
+      router.push("/");
     });
   };
 

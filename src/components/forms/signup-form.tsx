@@ -41,6 +41,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Controller, useForm, useWatch } from "react-hook-form";
 import { toast } from "sonner";
+import z from "zod";
 
 const roles = [
   {
@@ -77,19 +78,12 @@ export function SignupForm({
 
   const role = useWatch({ control: form.control, name: "role" });
 
-  const onSubmit = async (values: {
-    name: string;
-    email: string;
-    password: string;
-    role: "candidate" | "recruiter" | "admin";
-    organization?: string;
-  }) => {
+  const onSubmit = async (values: z.infer<typeof signUpSchema>) => {
     const { data, error } = await authClient.signUp.email({
       ...values,
     });
 
     if (error) {
-      console.error(error);
       toast.error(error.message || "Something went wrong. Please try again.");
       return;
     }

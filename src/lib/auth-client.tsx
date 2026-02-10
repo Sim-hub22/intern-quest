@@ -3,6 +3,7 @@
 import { Button } from "@/components/ui/button";
 import type { auth } from "@/server/auth";
 import {
+  adminClient,
   emailOTPClient,
   inferAdditionalFields,
 } from "better-auth/client/plugins";
@@ -11,20 +12,23 @@ import Link from "next/link";
 import { PropsWithChildren } from "react";
 
 export const authClient = createAuthClient({
-  plugins: [inferAdditionalFields<typeof auth>(), emailOTPClient()],
+  plugins: [
+    inferAdditionalFields<typeof auth>(),
+    emailOTPClient(),
+    adminClient(),
+  ],
 });
 
 export function Authenticated({ children }: PropsWithChildren) {
-  const { data } = authClient.useSession();
-  if (!data?.user) return null;
+  const { data, isPending } = authClient.useSession();
+  if (isPending || !data?.user) return null;
 
   return <>{children}</>;
 }
 
 export function Unauthenticated({ children }: PropsWithChildren) {
-  const { data } = authClient.useSession();
-  if (data?.user) return null;
-
+  const { data, isPending } = authClient.useSession();
+  if (isPending || data?.user) return null;
   return <>{children}</>;
 }
 

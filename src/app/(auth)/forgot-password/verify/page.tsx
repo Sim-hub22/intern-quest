@@ -6,33 +6,24 @@ import { Suspense } from "react";
 
 export const metadata: Metadata = {
   title: "Verify Code",
-  description:
-    "Verify the code sent to your email to reset your password.",
+  description: "Verify the code sent to your email to reset your password.",
 };
 
-interface VerifyResetPasswordPageProps {
-  searchParams: Promise<{
-    email?: string;
-  }>;
-}
-
-export default function Page({
-  searchParams,
-}: PageProps<"/forgot-password/verify">) {
+export default function Page(props: PageProps<"/forgot-password/verify">) {
   return (
     <Suspense fallback={null}>
-      <VerifyResetPasswordPage searchParams={searchParams} />
+      <VerifyResetPasswordPage {...props} />
     </Suspense>
   );
 }
 
-async function VerifyResetPasswordPage({
-  searchParams,
-}: VerifyResetPasswordPageProps) {
-  const params = await searchParams;
-  const email = params.email;
+async function VerifyResetPasswordPage(
+  props: PageProps<"/forgot-password/verify">,
+) {
+  const { email } = (await props.searchParams) as { email?: string };
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-  if (!email) {
+  if (!email || !emailRegex.test(email)) {
     redirect("/forgot-password");
   }
 

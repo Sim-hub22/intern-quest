@@ -8,7 +8,7 @@ import {
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { nextCookies } from "better-auth/next-js";
-import { emailOTP } from "better-auth/plugins";
+import { admin, emailOTP } from "better-auth/plugins";
 import { after } from "next/server";
 
 export const auth = betterAuth({
@@ -19,8 +19,8 @@ export const auth = betterAuth({
   user: {
     additionalFields: {
       role: {
-        type: "string",
-        required: false,
+        type: ["candidate", "recruiter", "admin"],
+        required: true,
         defaultValue: "candidate",
         input: true,
       },
@@ -92,5 +92,9 @@ export const auth = betterAuth({
       },
     }),
     nextCookies(),
+    admin({
+      adminRoles: ["admin"],
+      defaultRole: "candidate",
+    }),
   ],
 });

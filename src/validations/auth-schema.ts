@@ -1,4 +1,4 @@
-import { z } from "zod";
+import z from "zod";
 
 export const loginSchema = z.object({
   email: z
@@ -62,35 +62,6 @@ export const forgotPasswordSchema = z.object({
 });
 
 export const resetPasswordSchema = z
-  .object({
-    email: z
-      .string()
-      .check(z.minLength(1, "This field is required"))
-      .check(z.email())
-      .check(z.trim()),
-    otp: z
-      .string()
-      .check(z.length(6, "OTP must be exactly 6 digits"))
-      .check(z.regex(/^\d+$/, "OTP must contain only numbers")),
-    password: z
-      .string()
-      .check(z.minLength(1, "This field is required"))
-      .check(z.minLength(8, "Password must be at least 8 characters long"))
-      .check(
-        z.regex(/[A-Z]/, "Password must contain at least one uppercase letter"),
-      )
-      .check(
-        z.regex(/[a-z]/, "Password must contain at least one lowercase letter"),
-      )
-      .check(z.trim()),
-    confirmPassword: z.string().check(z.minLength(1, "This field is required")),
-  })
-  .refine((data) => data.password === data.confirmPassword, {
-    message: "Passwords do not match",
-    path: ["confirmPassword"],
-  });
-
-export const setNewPasswordSchema = z
   .object({
     email: z
       .string()

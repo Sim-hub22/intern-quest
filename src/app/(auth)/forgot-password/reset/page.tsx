@@ -10,36 +10,24 @@ export const metadata: Metadata = {
     "Reset your password to regain access to your Intern Quest account.",
 };
 
-interface ResetPasswordPageProps {
-  searchParams: Promise<{
-    email?: string;
-    verified?: string;
-    otp?: string;
-  }>;
-}
-
-export default function Page({
-  searchParams,
-}: PageProps<"/forgot-password/reset">) {
+export default function Page(props: PageProps<"/forgot-password/reset">) {
   return (
     <Suspense fallback={null}>
-      <ResetPasswordPage searchParams={searchParams} />
+      <ResetPasswordPage {...props} />
     </Suspense>
   );
 }
 
-async function ResetPasswordPage({
-  searchParams,
-}: ResetPasswordPageProps) {
-  const params = await searchParams;
-  const email = params.email;
-  const verified = params.verified === "true";
-  const otp = params.otp;
+async function ResetPasswordPage(props: PageProps<"/forgot-password/reset">) {
+  const { email, otp } = (await props.searchParams) as {
+    email?: string;
+    otp?: string;
+  };
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-  if (!email || !verified || !otp) {
+  if (!email || !otp || !emailRegex.test(email)) {
     redirect("/forgot-password");
   }
-
   return (
     <AuthShell>
       <ResetPasswordForm email={email} otp={otp} />

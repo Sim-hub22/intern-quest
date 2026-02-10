@@ -3,9 +3,11 @@
 import { OtpForm } from "@/components/forms/otp-form";
 import { Card } from "@/components/ui/card";
 import { authClient } from "@/lib/auth-client";
+import { otpSchema } from "@/validations/auth-schema";
 import { useRouter } from "next/navigation";
 import { useTransition } from "react";
 import { toast } from "sonner";
+import z from "zod";
 
 interface VerifyEmailOTPFormProps extends Omit<
   React.ComponentProps<typeof Card>,
@@ -21,14 +23,13 @@ export function VerifyEmailOTPForm({
   const router = useRouter();
   const [isResending, startTransition] = useTransition();
 
-  const handleSubmit = async (values: { email: string; otp: string }) => {
+  const handleSubmit = async (values: z.infer<typeof otpSchema>) => {
     const { error } = await authClient.emailOtp.verifyEmail({
       email: values.email,
       otp: values.otp,
     });
 
     if (error) {
-      console.error(error);
       toast.error(error.message || "Something went wrong. Please try again.");
       return;
     }
@@ -44,7 +45,6 @@ export function VerifyEmailOTPForm({
       });
 
       if (error) {
-        console.error(error);
         toast.error(error.message || "Something went wrong. Please try again.");
         return;
       }

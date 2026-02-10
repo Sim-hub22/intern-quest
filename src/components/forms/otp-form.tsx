@@ -26,12 +26,16 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { useInterval } from "react-use";
+import z from "zod";
 
-interface OtpFormProps extends Omit<React.ComponentProps<typeof Card>, "onSubmit"> {
+interface OtpFormProps extends Omit<
+  React.ComponentProps<typeof Card>,
+  "onSubmit"
+> {
   email: string;
   title: string;
   description: string;
-  onSubmit: (values: { email: string; otp: string }) => Promise<void>;
+  onSubmit: (values: z.infer<typeof otpSchema>) => Promise<void>;
   onResend: (onSuccess?: () => void) => void;
   isResending?: boolean;
   resendCooldownSeconds?: number;
@@ -65,7 +69,7 @@ export function OtpForm({
     },
   });
 
-  const handleSubmit = async (values: { email: string; otp: string }) => {
+  const handleSubmit = async (values: z.infer<typeof otpSchema>) => {
     await onSubmit(values);
   };
 

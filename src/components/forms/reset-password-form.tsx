@@ -19,12 +19,13 @@ import { PasswordInput } from "@/components/ui/password-input";
 import { Spinner } from "@/components/ui/spinner";
 import { authClient } from "@/lib/auth-client";
 import { cn } from "@/lib/utils";
-import { setNewPasswordSchema } from "@/validations/auth-schema";
+import { resetPasswordSchema } from "@/validations/auth-schema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Controller, useForm } from "react-hook-form";
 import { toast } from "sonner";
+import z from "zod";
 
 interface ResetPasswordFormProps extends React.ComponentProps<"div"> {
   email: string;
@@ -39,7 +40,7 @@ export function ResetPasswordForm({
 }: ResetPasswordFormProps) {
   const router = useRouter();
   const form = useForm({
-    resolver: zodResolver(setNewPasswordSchema),
+    resolver: zodResolver(resetPasswordSchema),
     defaultValues: {
       email,
       otp,
@@ -48,32 +49,23 @@ export function ResetPasswordForm({
     },
   });
 
-  const onSubmit = async (values: {
-    email: string;
-    otp: string;
-    password: string;
-  }) => {
-    await authClient.emailOtp.resetPassword(
-      {
-        email: values.email,
-        otp: values.otp,
-        password: values.password,
-      },
-      {
-        onSuccess: async () => {
-          form.reset();
-          toast.success("Password reset successfully!", {
-            description: "You can now login with your new password.",
-          });
-          router.push("/login");
-        },
-        onError: ({ error }: { error?: { message?: string } }) => {
-          toast.error(
-            error?.message || "Something went wrong. Please try again.",
-          );
-        },
-      },
-    );
+  const onSubmit = async (values: z.infer<typeof resetPasswordSchema>) => {
+    const { error } = await authClient.emailOtp.resetPassword({
+      email: values.email,
+      otp: values.otp,
+      password: values.password,
+    });
+
+    if (error) {
+      toast.error(error.message || "Something went wrong. Please try again.");
+      return;
+    }
+
+    form.reset();
+    toast.success("Password reset successfully!", {
+      description: "You can now login with your new password.",
+    });
+    router.push("/login");
   };
 
   return (

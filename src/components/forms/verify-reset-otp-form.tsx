@@ -1,13 +1,18 @@
 "use client";
 
-import { Card } from "@/components/ui/card";
 import { OtpForm } from "@/components/forms/otp-form";
+import { Card } from "@/components/ui/card";
 import { authClient } from "@/lib/auth-client";
+import { otpSchema } from "@/validations/auth-schema";
 import { useRouter } from "next/navigation";
 import { useTransition } from "react";
 import { toast } from "sonner";
+import z from "zod";
 
-interface VerifyResetOTPFormProps extends Omit<React.ComponentProps<typeof Card>, "onSubmit"> {
+interface VerifyResetOTPFormProps extends Omit<
+  React.ComponentProps<typeof Card>,
+  "onSubmit"
+> {
   email: string;
 }
 
@@ -18,52 +23,40 @@ export function VerifyResetOTPForm({
   const router = useRouter();
   const [isResending, startTransition] = useTransition();
 
-  const handleSubmit = async (values: { email: string; otp: string }) => {
-    await authClient.emailOtp.checkVerificationOtp(
-      {
-        email: values.email,
-        otp: values.otp,
-        type: "forget-password",
-      },
-      {
-        onSuccess: () => {
-          // Navigate to the reset page with verified params
-          const params = new URLSearchParams();
-          params.set("email", email);
-          params.set("verified", "true");
-          params.set("otp", values.otp);
-          router.push(`/forgot-password/reset?${params.toString()}`);
-        },
-        onError: ({ error }: { error?: { message?: string } }) => {
-          toast.error(
-            error?.message || "Invalid or expired code. Please try again.",
-          );
-        },
-      },
-    );
+  const handleSubmit = async (values: z.infer<typeof otpSchema>) => {
+    const { error } = await authClient.emailOtp.checkVerificationOtp({
+      email: values.email,
+      otp: values.otp,
+      type: "forget-password",
+    });
+
+    if (error) {
+      toast.error(error.message || "Something went wrong. Please try again.");
+      return;
+    }
+
+    const params = new URLSearchParams();
+    params.set("email", email);
+    params.set("otp", values.otp);
+    router.push(`/forgot-password/reset?${params.toString()}`);
   };
 
   const handleResend = (onSuccess?: () => void) =>
     startTransition(async () => {
-      await authClient.emailOtp.sendVerificationOtp(
-        {
-          email,
-          type: "forget-password",
-        },
-        {
-          onSuccess: () => {
-            toast.success("New code sent!", {
-              description: `We've sent a new code to ${email}`,
-            });
-            onSuccess?.();
-          },
-          onError: ({ error }: { error?: { message?: string } }) => {
-            toast.error(
-              error?.message || "Something went wrong. Please try again.",
-            );
-          },
-        },
-      );
+      const { error } = await authClient.emailOtp.sendVerificationOtp({
+        email,
+        type: "forget-password",
+      });
+
+      if (error) {
+        toast.error(error.message || "Something went wrong. Please try again.");
+        return;
+      }
+
+      toast.success("New code sent!", {
+        description: `We've sent a new code to ${email}`,
+      });
+      onSuccess?.();
     });
 
   return (
