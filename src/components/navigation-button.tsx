@@ -5,30 +5,27 @@ import { cn } from "@/lib/utils";
 import { Route } from "next";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import React from "react";
 
-interface NavigationButtonProps {
+interface NavigationButtonProps extends React.ComponentProps<typeof Button> {
   href: Route;
-  label: string;
-  className?: string;
 }
 
 export function NavigationButton({
+  children,
   href,
-  label,
-  className,
+  ...props
 }: NavigationButtonProps) {
   const pathname = usePathname();
 
   return (
     <Button
+      {...props}
       variant="ghost"
-      className={cn(
-        pathname === href ? "text-primary" : "text-muted-foreground",
-        className
-      )}
       asChild
+      className={cn(pathname === href && "text-primary!", props.className)}
     >
-      <Link href={href}>{label}</Link>
+      <Link href={href}>{children}</Link>
     </Button>
   );
 }

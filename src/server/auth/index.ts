@@ -5,21 +5,37 @@ import {
   sendPasswordResetEmail,
   sendVerificationEmail,
 } from "@/server/email/emails";
+import { redis } from "@/server/redis";
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { nextCookies } from "better-auth/next-js";
-import { emailOTP } from "better-auth/plugins";
+import { admin } from "better-auth/plugins/admin";
+import { emailOTP } from "better-auth/plugins/email-otp";
+import { after } from "next/server";
 
 export const auth = betterAuth({
+  appName: "InternQuest",
   database: drizzleAdapter(db, {
     provider: "pg",
     schema,
   }),
+  secondaryStorage: {
+    get: async (key) => {
+      return await redis.get(key);
+    },
+    set: async (key, value, ttl) => {
+      if (ttl != null) await redis.set(key, value, { ex: ttl });
+      else await redis.set(key, value);
+    },
+    delete: async (key) => {
+      await redis.del(key);
+    },
+  },
   user: {
     additionalFields: {
       role: {
-        type: "string",
-        required: false,
+        type: ["candidate", "recruiter", "admin"],
+        required: true,
         defaultValue: "candidate",
         input: true,
       },
@@ -45,21 +61,52 @@ export const auth = betterAuth({
       clientSecret: env.GOOGLE_CLIENT_SECRET,
     },
   },
+  account: {
+    accountLinking: {
+      enabled: true,
+      trustedProviders: ["google"],
+    },
+  },
+  trustedOrigins: [env.BETTER_AUTH_URL],
+  session: {
+    cookieCache: {
+      enabled: true,
+      maxAge: 5 * 60,
+    },
+  },
+  advanced: {
+    useSecureCookies: env.NODE_ENV === "production",
+    rateLimit: {
+      storage: "secondary-storage",
+    },
+  },
   plugins: [
-    nextCookies(),
     emailOTP({
       sendVerificationOnSignUp: true,
       overrideDefaultEmailVerification: true,
       sendVerificationOTP: async ({ email, otp, type }) => {
         switch (type) {
           case "email-verification":
-            void sendVerificationEmail({ email, otp });
+            after(() =>
+              sendVerificationEmail({ email, otp }).catch((err) =>
+                console.error("Verification email failed", err),
+              ),
+            );
             break;
           case "forget-password":
-            void sendPasswordResetEmail({ email, otp });
+            after(() =>
+              sendPasswordResetEmail({ email, otp }).catch((err) =>
+                console.error("Password reset email failed", err),
+              ),
+            );
             break;
         }
       },
     }),
+    admin({
+      adminRoles: ["admin"],
+      defaultRole: "candidate",
+    }),
+    nextCookies(),
   ],
 });

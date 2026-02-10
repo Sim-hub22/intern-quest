@@ -9,4 +9,6 @@ neonConfig.webSocketConstructor = ws;
 neonConfig.poolQueryViaFetch = true;
 
 const sql = neon(env.DATABASE_URL);
+// Note: neon-http driver does not support interactive transactions (db.transaction(...))
+// If transactions are needed, use the neon-serverless WebSocket driver instead
 export const db = drizzle(sql, { schema });

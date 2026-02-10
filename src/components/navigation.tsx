@@ -1,6 +1,15 @@
-import { AuthenticationActions } from "@/components/authentication-actions";
+import { Logo } from "@/components/logo";
+import { MobileMenuButton } from "@/components/mobile-menu-button";
 import { NavigationButton } from "@/components/navigation-button";
+import { Button } from "@/components/ui/button";
 import { MENU_ITEMS } from "@/const/navigation";
+import {
+  Authenticated,
+  LoginButton,
+  SignupButton,
+  Unauthenticated,
+} from "@/lib/auth-client";
+import { ArrowRight } from "lucide-react";
 import Link from "next/link";
 
 export function Navigation() {
@@ -9,29 +18,35 @@ export function Navigation() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
-          <div className="flex items-center">
-            <Link href="/" className="flex items-center gap-2">
-              <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-                <span className="text-primary-foreground font-bold text-lg">
-                  IQ
-                </span>
-              </div>
-              <span className="text-foreground">InternQuest</span>
-            </Link>
-          </div>
+          <Logo />
 
           {/* Desktop Menu */}
           <div className="hidden md:flex items-center gap-2">
             {MENU_ITEMS.map((item) => (
-              <NavigationButton
-                key={item.href}
-                href={item.href}
-                label={item.label}
-              />
+              <NavigationButton key={item.href} href={item.href} size="sm">
+                {item.label}
+              </NavigationButton>
             ))}
           </div>
 
-          <AuthenticationActions />
+          {/* Desktop Authentication Actions */}
+          <div className="hidden md:flex gap-2">
+            <Authenticated>
+              <Button size="sm" className="group" asChild>
+                <Link href="/dashboard">
+                  Dashboard{" "}
+                  <ArrowRight className="group-hover:translate-x-1 transition-transform duration-300" />
+                </Link>
+              </Button>
+            </Authenticated>
+            <Unauthenticated>
+              <LoginButton size="sm" variant="ghost" />
+              <SignupButton size="sm" variant="default" />
+            </Unauthenticated>
+          </div>
+
+          {/* Mobile Authentication Actions */}
+          <MobileMenuButton />
         </div>
       </div>
     </nav>

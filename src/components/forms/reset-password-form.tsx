@@ -1,6 +1,5 @@
 "use client";
 
-import { setNewPasswordAction } from "@/actions/auth-action";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -20,61 +19,54 @@ import { PasswordInput } from "@/components/ui/password-input";
 import { Spinner } from "@/components/ui/spinner";
 import { authClient } from "@/lib/auth-client";
 import { cn } from "@/lib/utils";
-import { setNewPasswordSchema } from "@/validations/auth-schema";
+import { resetPasswordSchema } from "@/validations/auth-schema";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useHookFormAction } from "@next-safe-action/adapter-react-hook-form/hooks";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Controller } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
 import { toast } from "sonner";
+import z from "zod";
 
-interface SetNewPasswordFormProps extends React.ComponentProps<"div"> {
+interface ResetPasswordFormProps extends React.ComponentProps<"div"> {
   email: string;
   otp: string;
 }
 
-export function SetNewPasswordForm({
+export function ResetPasswordForm({
   email,
   otp,
   className,
   ...props
-}: SetNewPasswordFormProps) {
+}: ResetPasswordFormProps) {
   const router = useRouter();
-  const { refetch } = authClient.useSession();
-  const {
-    form,
-    action: { isExecuting },
-    handleSubmitWithAction,
-    resetFormAndAction,
-  } = useHookFormAction(
-    setNewPasswordAction,
-    zodResolver(setNewPasswordSchema),
-    {
-      actionProps: {
-        onSuccess: async () => {
-          await refetch();
-          resetFormAndAction();
-          toast.success("Password reset successfully!", {
-            description: "You can now login with your new password.",
-          });
-          router.push("/login");
-        },
-        onError: ({ error }) => {
-          toast.error(
-            error.serverError || "Something went wrong. Please try again."
-          );
-        },
-      },
-      formProps: {
-        defaultValues: {
-          email,
-          otp,
-          password: "",
-          confirmPassword: "",
-        },
-      },
+  const form = useForm({
+    resolver: zodResolver(resetPasswordSchema),
+    defaultValues: {
+      email,
+      otp,
+      password: "",
+      confirmPassword: "",
+    },
+  });
+
+  const onSubmit = async (values: z.infer<typeof resetPasswordSchema>) => {
+    const { error } = await authClient.emailOtp.resetPassword({
+      email: values.email,
+      otp: values.otp,
+      password: values.password,
+    });
+
+    if (error) {
+      toast.error(error.message || "Something went wrong. Please try again.");
+      return;
     }
-  );
+
+    form.reset();
+    toast.success("Password reset successfully!", {
+      description: "You can now login with your new password.",
+    });
+    router.push("/login");
+  };
 
   return (
     <div className={cn("flex flex-col gap-6", className)} {...props}>
@@ -84,8 +76,8 @@ export function SetNewPasswordForm({
           <CardDescription>Enter your new password for {email}</CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSubmitWithAction}>
-            <FieldGroup className="gap-4">
+          <form onSubmit={form.handleSubmit(onSubmit)}>
+            <FieldGroup>
               <Controller
                 control={form.control}
                 name="password"
@@ -126,19 +118,21 @@ export function SetNewPasswordForm({
                   </Field>
                 )}
               />
-              <Button type="submit" disabled={isExecuting}>
-                {isExecuting ? <Spinner /> : "Reset password"}
-              </Button>
+              <Field>
+                <Button type="submit" disabled={form.formState.isSubmitting}>
+                  {form.formState.isSubmitting ? <Spinner /> : "Reset password"}
+                </Button>
+                <FieldDescription className="text-center">
+                  Remember your password?{" "}
+                  <Link href="/login" className="hover:text-primary">
+                    Login
+                  </Link>
+                </FieldDescription>
+              </Field>
             </FieldGroup>
           </form>
         </CardContent>
       </Card>
-      <FieldDescription className="px-6 text-center">
-        Remember your password?{" "}
-        <Link href="/login" className="hover:text-primary">
-          Login
-        </Link>
-      </FieldDescription>
     </div>
   );
 }

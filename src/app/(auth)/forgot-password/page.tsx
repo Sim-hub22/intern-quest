@@ -1,3 +1,4 @@
+import { AuthShell } from "@/components/auth-shell";
 import { ForgotPasswordForm } from "@/components/forms/forgot-password-form";
 import { Metadata } from "next";
 
@@ -8,5 +9,9 @@ export const metadata: Metadata = {
 };
 
 export default function ForgotPasswordPage() {
-  return <ForgotPasswordForm />;
+  return (
+    <AuthShell>
+      <ForgotPasswordForm />
+    </AuthShell>
+  );
 }

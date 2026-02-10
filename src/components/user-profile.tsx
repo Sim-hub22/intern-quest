@@ -35,9 +35,12 @@ import {
 import { Spinner } from "@/components/ui/spinner";
 import { authClient } from "@/lib/auth-client";
 import { User } from "better-auth";
+import { LucideIcon } from "lucide-react";
+import { Route } from "next";
 import Link from "next/link";
+import { toast } from "sonner";
 
-const DROPDOWN_ITEMS = [
+const DROPDOWN_ITEMS: { Icon: LucideIcon; label: string; href: Route }[] = [
   {
     Icon: LayoutDashboardIcon,
     label: "Dashboard",
@@ -75,13 +78,14 @@ export default function UserProfile({ user }: UserProfileProps) {
 
   const handleLogout = () => {
     startTransition(async () => {
-      await authClient.signOut({
-        fetchOptions: {
-          onSuccess: () => {
-            router.push("/");
-          },
-        },
-      });
+      const { error } = await authClient.signOut();
+
+      if (error) {
+        toast.error(error.message || "Something went wrong. Please try again.");
+        return;
+      }
+
+      router.push("/");
     });
   };
 
