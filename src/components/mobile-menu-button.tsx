@@ -10,7 +10,7 @@ import {
   SheetHeader,
   SheetTrigger,
 } from "@/components/ui/sheet";
-import { MENU_ITEMS } from "@/const/navigation";
+import { PUBLIC_NAV_ITEMS } from "@/const/navigation";
 import { useIsMobile } from "@/hooks/use-mobile";
 import {
   Authenticated,
@@ -38,7 +38,7 @@ export function MobileMenuButton() {
           <Logo />
         </SheetHeader>
         <div className="flex flex-col gap-4 p-4 flex-1 justify-center">
-          {MENU_ITEMS.map((item) => (
+          {PUBLIC_NAV_ITEMS.map((item) => (
             <NavigationButton
               key={item.href}
               href={item.href}

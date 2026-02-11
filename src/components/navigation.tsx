@@ -2,7 +2,7 @@ import { Logo } from "@/components/logo";
 import { MobileMenuButton } from "@/components/mobile-menu-button";
 import { NavigationButton } from "@/components/navigation-button";
 import { Button } from "@/components/ui/button";
-import { MENU_ITEMS } from "@/const/navigation";
+import { PUBLIC_NAV_ITEMS } from "@/const/navigation";
 import {
   Authenticated,
   LoginButton,
@@ -22,7 +22,7 @@ export function Navigation() {
 
           {/* Desktop Menu */}
           <div className="hidden md:flex items-center gap-2">
-            {MENU_ITEMS.map((item) => (
+            {PUBLIC_NAV_ITEMS.map((item) => (
               <NavigationButton key={item.href} href={item.href} size="sm">
                 {item.label}
               </NavigationButton>
