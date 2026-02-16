@@ -36,10 +36,10 @@ export function SearchButton() {
       </Button>
       <CommandDialog open={open} onOpenChange={setOpen}>
         <Command>
-          <CommandInput placeholder="Type a command or search..." />
+          <CommandInput placeholder="Search..." />
           <CommandList>
             <CommandEmpty>No results found.</CommandEmpty>
-            <CommandGroup heading="Suggestions">
+            <CommandGroup heading="Navigation">
               {RECRUITER_NAV_ITEMS.map((item) => (
                 <CommandItem key={item.href} asChild>
                   <Link href={item.href as Route}>

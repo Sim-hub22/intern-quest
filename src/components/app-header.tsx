@@ -17,19 +17,24 @@ export function AppHeader() {
     <header className="flex h-16 shrink-0 items-center gap-2 border-b transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12">
       <div className="flex items-center w-full gap-1 px-4 lg:gap-2 lg:px-6">
         <SidebarTrigger className="-ml-1" />
-        <Separator
-          orientation="vertical"
-          className="mr-2 data-[orientation=vertical]:h-4"
-        />
+        <div className="flex h-4 items-center mr-2">
+          <Separator orientation="vertical" className="h-full" />
+        </div>
         <h1 className="text-base font-medium">
           {current?.label ?? "Dashboard"}
         </h1>
 
         <div className="flex items-center gap-2 ml-auto">
           <SearchButton />
+          <div className="flex h-4 items-center ml-2">
+            <Separator orientation="vertical" className="h-full" />
+          </div>
           <Button variant="ghost" size="icon-sm" className="relative">
             <Bell />
           </Button>
+          <div className="flex h-4 items-center">
+            <Separator orientation="vertical" className="h-full" />
+          </div>
           <ModeToggle />
         </div>
       </div>
