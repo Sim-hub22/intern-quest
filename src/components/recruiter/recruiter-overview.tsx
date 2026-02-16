@@ -1,3 +1,5 @@
+"use client";
+
 import {
   AlertCircle,
   ArrowUpRight,
@@ -9,20 +11,32 @@ import {
   TrendingUp,
   Users,
 } from "lucide-react";
+import Link from "next/link";
+
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardAction,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 
 interface RecruiterOverviewProps {
   onNavigateToPostOpportunity?: () => void;
+  onNavigateToManageOpportunities?: () => void;
   onNavigateToApplications?: () => void;
   onNavigateToCreateQuiz?: () => void;
-  onNavigateToManageOpportunities?: () => void;
 }
 
 export function RecruiterOverview({
   onNavigateToPostOpportunity,
+  onNavigateToManageOpportunities,
   onNavigateToApplications,
   onNavigateToCreateQuiz,
-  onNavigateToManageOpportunities,
-}: RecruiterOverviewProps) {
+}: RecruiterOverviewProps = {}) {
   const summaryCards = [
     {
       label: "Active Opportunities",
@@ -30,8 +44,8 @@ export function RecruiterOverview({
       change: "+4 this week",
       trend: "+18%",
       icon: Briefcase,
-      bgColor: "bg-blue-50",
-      iconColor: "text-blue-600",
+      bgColor: "bg-primary/10",
+      iconColor: "text-primary",
       trendPositive: true,
     },
     {
@@ -40,8 +54,8 @@ export function RecruiterOverview({
       change: "+23 today",
       trend: "+12%",
       icon: Users,
-      bgColor: "bg-cyan-50",
-      iconColor: "text-cyan-600",
+      bgColor: "bg-chart-1/15",
+      iconColor: "text-chart-1",
       trendPositive: true,
     },
     {
@@ -50,8 +64,8 @@ export function RecruiterOverview({
       change: "3 urgent",
       trend: "-8%",
       icon: FileText,
-      bgColor: "bg-yellow-50",
-      iconColor: "text-yellow-600",
+      bgColor: "bg-amber-500/10",
+      iconColor: "text-amber-600 dark:text-amber-400",
       trendPositive: false,
     },
     {
@@ -60,8 +74,8 @@ export function RecruiterOverview({
       change: "2 today",
       trend: "+5%",
       icon: Calendar,
-      bgColor: "bg-green-50",
-      iconColor: "text-green-600",
+      bgColor: "bg-emerald-500/10",
+      iconColor: "text-emerald-600 dark:text-emerald-400",
       trendPositive: true,
     },
   ];
@@ -153,191 +167,265 @@ export function RecruiterOverview({
   ];
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-gray-900 mb-2">Dashboard Overview</h1>
-          <p className="text-gray-600">
-            Track your recruitment performance and manage active opportunities
-          </p>
-        </div>
-
         {/* Summary Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           {summaryCards.map((card, index) => (
-            <div
+            <Card
               key={index}
-              className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-all hover:border-blue-200"
+              className="transition-all hover:shadow-md hover:ring-primary/20"
             >
-              <div className="flex items-start justify-between mb-4">
-                <div
-                  className={`w-12 h-12 ${card.bgColor} rounded-lg flex items-center justify-center`}
-                >
-                  <card.icon className={`w-6 h-6 ${card.iconColor}`} />
+              <CardContent className="pt-0">
+                <div className="flex items-start justify-between mb-4">
+                  <div
+                    className={`w-12 h-12 ${card.bgColor} rounded-lg flex items-center justify-center`}
+                  >
+                    <card.icon className={`w-6 h-6 ${card.iconColor}`} />
+                  </div>
+                  <Badge
+                    variant={card.trendPositive ? "secondary" : "destructive"}
+                    className="gap-1"
+                  >
+                    <TrendingUp
+                      className={`w-3 h-3 ${card.trendPositive ? "" : "rotate-180"}`}
+                    />
+                    {card.trend}
+                  </Badge>
                 </div>
-                <div
-                  className={`flex items-center gap-1 text-xs px-2 py-1 rounded-full ${
-                    card.trendPositive
-                      ? "bg-green-100 text-green-700"
-                      : "bg-red-100 text-red-700"
-                  }`}
-                >
-                  <TrendingUp
-                    className={`w-3 h-3 ${card.trendPositive ? "" : "rotate-180"}`}
-                  />
-                  {card.trend}
+                <div className="space-y-1">
+                  <h3 className="text-foreground">{card.value}</h3>
+                  <p className="text-muted-foreground text-sm">{card.label}</p>
+                  <p className="text-muted-foreground text-xs">{card.change}</p>
                 </div>
-              </div>
-              <div className="space-y-1">
-                <h3 className="text-gray-900">{card.value}</h3>
-                <p className="text-gray-600 text-sm">{card.label}</p>
-                <p className="text-gray-500 text-xs">{card.change}</p>
-              </div>
-            </div>
+              </CardContent>
+            </Card>
           ))}
         </div>
 
         {/* Quick Actions */}
-        <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6 mb-8">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-gray-900">Quick Actions</h2>
-            <p className="text-gray-500 text-sm">
-              Get started with common tasks
-            </p>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <button
-              onClick={onNavigateToPostOpportunity}
-              className="group flex items-center gap-4 p-5 bg-gradient-to-br from-blue-600 to-cyan-600 text-white rounded-xl hover:from-blue-700 hover:to-cyan-700 transition-all shadow-md hover:shadow-lg"
-            >
-              <div className="w-12 h-12 bg-white/20 rounded-lg flex items-center justify-center">
-                <Briefcase className="w-6 h-6" />
-              </div>
-              <div className="text-left flex-1">
-                <p className="font-semibold mb-1">Post Opportunity</p>
-                <p className="text-blue-100 text-xs">
-                  Create new internship listing
-                </p>
-              </div>
-              <ArrowUpRight className="w-5 h-5 opacity-0 group-hover:opacity-100 transition-opacity" />
-            </button>
+        <Card className="mb-8">
+          <CardHeader>
+            <CardTitle>Quick Actions</CardTitle>
+            <CardDescription>Get started with common tasks</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {onNavigateToPostOpportunity ? (
+                <Button
+                  onClick={onNavigateToPostOpportunity}
+                  className="h-auto flex-col items-start gap-4 p-5 group"
+                >
+                  <div className="flex w-full items-center gap-4">
+                    <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary-foreground/20">
+                      <Briefcase className="h-6 w-6" />
+                    </div>
+                    <div className="flex-1 text-left">
+                      <p className="mb-1 font-semibold">Post Opportunity</p>
+                      <p className="text-xs text-primary-foreground/80">
+                        Create new internship listing
+                      </p>
+                    </div>
+                    <ArrowUpRight className="h-5 w-5 opacity-0 transition-opacity group-hover:opacity-100" />
+                  </div>
+                </Button>
+              ) : (
+                <Button
+                  asChild
+                  className="h-auto flex-col items-start gap-4 p-5 group"
+                >
+                  <Link href="/post-opportunity">
+                    <div className="flex w-full items-center gap-4">
+                      <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary-foreground/20">
+                        <Briefcase className="h-6 w-6" />
+                      </div>
+                      <div className="flex-1 text-left">
+                        <p className="mb-1 font-semibold">Post Opportunity</p>
+                        <p className="text-xs text-primary-foreground/80">
+                          Create new internship listing
+                        </p>
+                      </div>
+                      <ArrowUpRight className="h-5 w-5 opacity-0 transition-opacity group-hover:opacity-100" />
+                    </div>
+                  </Link>
+                </Button>
+              )}
 
-            <button
-              onClick={onNavigateToApplications}
-              className="group flex items-center gap-4 p-5 border-2 border-gray-200 rounded-xl hover:border-blue-600 hover:shadow-md transition-all bg-white"
-            >
-              <div className="w-12 h-12 bg-gray-50 rounded-lg flex items-center justify-center group-hover:bg-blue-50 transition-colors">
-                <Users className="w-6 h-6 text-blue-600" />
-              </div>
-              <div className="text-left flex-1">
-                <p className="text-gray-900 font-semibold mb-1">
-                  View Applications
-                </p>
-                <p className="text-gray-600 text-xs">Review all candidates</p>
-              </div>
-              <ArrowUpRight className="w-5 h-5 text-blue-600 opacity-0 group-hover:opacity-100 transition-opacity" />
-            </button>
+              {onNavigateToApplications ? (
+                <Button
+                  variant="outline"
+                  onClick={onNavigateToApplications}
+                  className="h-auto flex-col items-start gap-4 p-5 group"
+                >
+                  <div className="flex w-full items-center gap-4">
+                    <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-muted transition-colors group-hover:bg-primary/10">
+                      <Users className="h-6 w-6 text-primary" />
+                    </div>
+                    <div className="flex-1 text-left">
+                      <p className="mb-1 font-semibold text-foreground">
+                        View Applications
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        Review all candidates
+                      </p>
+                    </div>
+                    <ArrowUpRight className="h-5 w-5 text-primary opacity-0 transition-opacity group-hover:opacity-100" />
+                  </div>
+                </Button>
+              ) : (
+                <Button
+                  asChild
+                  variant="outline"
+                  className="h-auto flex-col items-start gap-4 p-5 group"
+                >
+                  <Link href="/view-applications">
+                    <div className="flex w-full items-center gap-4">
+                      <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-muted transition-colors group-hover:bg-primary/10">
+                        <Users className="h-6 w-6 text-primary" />
+                      </div>
+                      <div className="flex-1 text-left">
+                        <p className="mb-1 font-semibold text-foreground">
+                          View Applications
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          Review all candidates
+                        </p>
+                      </div>
+                      <ArrowUpRight className="h-5 w-5 text-primary opacity-0 transition-opacity group-hover:opacity-100" />
+                    </div>
+                  </Link>
+                </Button>
+              )}
 
-            <button
-              onClick={onNavigateToCreateQuiz}
-              className="group flex items-center gap-4 p-5 border-2 border-gray-200 rounded-xl hover:border-blue-600 hover:shadow-md transition-all bg-white"
-            >
-              <div className="w-12 h-12 bg-gray-50 rounded-lg flex items-center justify-center group-hover:bg-blue-50 transition-colors">
-                <FileText className="w-6 h-6 text-blue-600" />
-              </div>
-              <div className="text-left flex-1">
-                <p className="text-gray-900 font-semibold mb-1">
-                  Create Assessment
-                </p>
-                <p className="text-gray-600 text-xs">Build custom quizzes</p>
-              </div>
-              <ArrowUpRight className="w-5 h-5 text-blue-600 opacity-0 group-hover:opacity-100 transition-opacity" />
-            </button>
-          </div>
-        </div>
+              {onNavigateToCreateQuiz ? (
+                <Button
+                  variant="outline"
+                  onClick={onNavigateToCreateQuiz}
+                  className="h-auto flex-col items-start gap-4 p-5 group"
+                >
+                  <div className="flex w-full items-center gap-4">
+                    <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-muted transition-colors group-hover:bg-primary/10">
+                      <FileText className="h-6 w-6 text-primary" />
+                    </div>
+                    <div className="flex-1 text-left">
+                      <p className="mb-1 font-semibold text-foreground">
+                        Create Assessment
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        Build custom quizzes
+                      </p>
+                    </div>
+                    <ArrowUpRight className="h-5 w-5 text-primary opacity-0 transition-opacity group-hover:opacity-100" />
+                  </div>
+                </Button>
+              ) : (
+                <Button
+                  asChild
+                  variant="outline"
+                  className="h-auto flex-col items-start gap-4 p-5 group"
+                >
+                  <Link href="/quiz-review">
+                    <div className="flex w-full items-center gap-4">
+                      <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-muted transition-colors group-hover:bg-primary/10">
+                        <FileText className="h-6 w-6 text-primary" />
+                      </div>
+                      <div className="flex-1 text-left">
+                        <p className="mb-1 font-semibold text-foreground">
+                          Create Assessment
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          Build custom quizzes
+                        </p>
+                      </div>
+                      <ArrowUpRight className="h-5 w-5 text-primary opacity-0 transition-opacity group-hover:opacity-100" />
+                    </div>
+                  </Link>
+                </Button>
+              )}
+            </div>
+          </CardContent>
+        </Card>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Recent Activity - Takes 2 columns */}
           <div className="lg:col-span-2 space-y-6">
             {/* Recent Activity Feed */}
-            <div className="bg-white rounded-xl border border-gray-200 shadow-sm">
-              <div className="p-6 border-b border-gray-200">
-                <div className="flex items-center justify-between">
-                  <h2 className="text-gray-900">Recent Activity</h2>
-                  <span className="text-xs text-gray-500">Last 24 hours</span>
-                </div>
-              </div>
-              <div className="divide-y divide-gray-100">
+            <Card className="pb-0">
+              <CardHeader className="flex-row items-center justify-between">
+                <CardTitle>Recent Activity</CardTitle>
+                <span className="text-xs text-muted-foreground">
+                  Last 24 hours
+                </span>
+              </CardHeader>
+              <CardContent className="p-0">
                 {recentActivity.map((activity) => (
-                  <div
-                    key={activity.id}
-                    className="p-6 hover:bg-gray-50 transition-colors"
-                  >
-                    <div className="flex items-start gap-4">
-                      <div
-                        className={`w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 ${
-                          activity.type === "warning"
-                            ? "bg-yellow-100"
-                            : activity.type === "success"
-                              ? "bg-green-100"
-                              : "bg-blue-100"
-                        }`}
-                      >
-                        <activity.icon
-                          className={`w-5 h-5 ${
+                  <div key={activity.id}>
+                    <div className="p-6 transition-colors hover:bg-muted/50 border-t">
+                      <div className="flex items-start gap-4">
+                        <div
+                          className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${
                             activity.type === "warning"
-                              ? "text-yellow-600"
+                              ? "bg-amber-500/10"
                               : activity.type === "success"
-                                ? "text-green-600"
-                                : "text-blue-600"
+                                ? "bg-emerald-500/10"
+                                : "bg-primary/10"
                           }`}
-                        />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-gray-900 font-medium text-sm mb-1">
-                          {activity.title}
-                        </p>
-                        <p className="text-gray-600 text-sm">
-                          {activity.message}
-                        </p>
-                        <div className="flex items-center gap-2 mt-2">
-                          <Clock className="w-3 h-3 text-gray-400" />
-                          <p className="text-gray-500 text-xs">
-                            {activity.time}
+                        >
+                          <activity.icon
+                            className={`h-5 w-5 ${
+                              activity.type === "warning"
+                                ? "text-amber-600 dark:text-amber-400"
+                                : activity.type === "success"
+                                  ? "text-emerald-600 dark:text-emerald-400"
+                                  : "text-primary"
+                            }`}
+                          />
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <p className="mb-1 text-sm font-medium text-foreground">
+                            {activity.title}
                           </p>
+                          <p className="text-sm text-muted-foreground">
+                            {activity.message}
+                          </p>
+                          <div className="mt-2 flex items-center gap-2">
+                            <Clock className="h-3 w-3 text-muted-foreground/60" />
+                            <p className="text-xs text-muted-foreground">
+                              {activity.time}
+                            </p>
+                          </div>
                         </div>
                       </div>
                     </div>
                   </div>
                 ))}
-              </div>
-            </div>
+              </CardContent>
+            </Card>
 
             {/* Top Performing Opportunities */}
-            <div className="bg-white rounded-xl border border-gray-200 shadow-sm">
-              <div className="p-6 border-b border-gray-200">
-                <h2 className="text-gray-900">Top Performing Opportunities</h2>
-              </div>
-              <div className="p-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Top Performing Opportunities</CardTitle>
+              </CardHeader>
+              <CardContent>
                 <div className="space-y-4">
                   {topPerformingOpportunities.map((opp, index) => (
                     <div key={opp.id} className="flex items-center gap-4">
-                      <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-cyan-600 rounded-lg flex items-center justify-center text-white font-semibold text-sm">
+                      <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary font-semibold text-sm text-primary-foreground">
                         {index + 1}
                       </div>
                       <div className="flex-1">
-                        <p className="text-gray-900 font-medium text-sm">
+                        <p className="text-sm font-medium text-foreground">
                           {opp.title}
                         </p>
-                        <div className="flex items-center gap-4 mt-1">
-                          <span className="text-gray-600 text-xs">
+                        <div className="mt-1 flex items-center gap-4">
+                          <span className="text-xs text-muted-foreground">
                             {opp.views} views
                           </span>
-                          <span className="text-gray-600 text-xs">
+                          <span className="text-xs text-muted-foreground">
                             {opp.applications} applications
                           </span>
-                          <span className="text-green-600 text-xs font-medium">
+                          <span className="text-xs font-medium text-emerald-600 dark:text-emerald-400">
                             {opp.conversion} conversion
                           </span>
                         </div>
@@ -345,84 +433,98 @@ export function RecruiterOverview({
                     </div>
                   ))}
                 </div>
-              </div>
-            </div>
+              </CardContent>
+            </Card>
           </div>
 
           {/* Sidebar - Takes 1 column */}
           <div className="space-y-6">
             {/* Upcoming Deadlines */}
-            <div className="bg-white rounded-xl border border-gray-200 shadow-sm">
-              <div className="p-6 border-b border-gray-200">
-                <div className="flex items-center justify-between">
-                  <h2 className="text-gray-900">Upcoming Deadlines</h2>
-                  <button
-                    onClick={onNavigateToManageOpportunities}
-                    className="text-blue-600 hover:text-blue-700 text-sm font-medium"
-                  >
-                    View All
-                  </button>
-                </div>
-              </div>
-              <div className="p-6 space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle>Upcoming Deadlines</CardTitle>
+                <CardAction>
+                  {onNavigateToManageOpportunities ? (
+                    <Button
+                      variant="link"
+                      size="sm"
+                      onClick={onNavigateToManageOpportunities}
+                    >
+                      View All
+                    </Button>
+                  ) : (
+                    <Button variant="link" size="sm" asChild>
+                      <Link href="/manage-opportunities">View All</Link>
+                    </Button>
+                  )}
+                </CardAction>
+              </CardHeader>
+              <CardContent className="space-y-4">
                 {upcomingDeadlines.map((deadline) => (
                   <div
                     key={deadline.id}
-                    className={`p-4 rounded-lg border-2 transition-all hover:shadow-md ${
+                    className={`rounded-lg border-2 p-4 transition-all hover:shadow-md ${
                       deadline.status === "urgent"
-                        ? "border-red-200 bg-red-50"
-                        : "border-gray-200 hover:border-blue-200"
+                        ? "border-destructive/30 bg-destructive/5"
+                        : "border-border hover:border-primary/30"
                     }`}
                   >
-                    <div className="flex items-start justify-between mb-3">
-                      <h3 className="text-gray-900 font-medium text-sm pr-2">
+                    <div className="mb-3 flex items-start justify-between">
+                      <h3 className="pr-2 text-sm font-medium text-foreground">
                         {deadline.title}
                       </h3>
-                      <span
-                        className={`px-2 py-1 rounded-full text-xs font-medium flex-shrink-0 ${
+                      <Badge
+                        variant={
                           deadline.status === "urgent"
-                            ? "bg-red-100 text-red-700"
-                            : "bg-green-100 text-green-700"
-                        }`}
+                            ? "destructive"
+                            : "secondary"
+                        }
+                        className="shrink-0"
                       >
                         {deadline.daysLeft}d left
-                      </span>
+                      </Badge>
                     </div>
                     <div className="space-y-2">
-                      <div className="flex items-center gap-2 text-sm text-gray-600">
-                        <Calendar className="w-4 h-4" />
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <Calendar className="h-4 w-4" />
                         <span>{deadline.deadline}</span>
                       </div>
-                      <div className="flex items-center gap-2 text-sm text-gray-600">
-                        <Users className="w-4 h-4" />
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <Users className="h-4 w-4" />
                         <span>{deadline.applicants} applicants</span>
                       </div>
                     </div>
                   </div>
                 ))}
-              </div>
-            </div>
+              </CardContent>
+            </Card>
 
             {/* Quick Stats */}
-            <div className="bg-gradient-to-br from-blue-600 to-cyan-600 rounded-xl p-6 text-white shadow-lg">
-              <h3 className="font-semibold mb-4">This Month</h3>
-              <div className="space-y-4">
-                <div>
-                  <p className="text-blue-100 text-sm mb-1">Total Hired</p>
-                  <p className="font-semibold">18 Candidates</p>
+            <Card className="border-0 bg-primary text-primary-foreground ring-0">
+              <CardContent className="pt-0">
+                <h3 className="mb-4 font-semibold">This Month</h3>
+                <div className="space-y-4">
+                  <div>
+                    <p className="mb-1 text-sm text-primary-foreground/80">
+                      Total Hired
+                    </p>
+                    <p className="font-semibold">18 Candidates</p>
+                  </div>
+                  <div>
+                    <p className="mb-1 text-sm text-primary-foreground/80">
+                      Avg. Time to Hire
+                    </p>
+                    <p className="font-semibold">14 Days</p>
+                  </div>
+                  <div>
+                    <p className="mb-1 text-sm text-primary-foreground/80">
+                      Success Rate
+                    </p>
+                    <p className="font-semibold">87%</p>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-blue-100 text-sm mb-1">
-                    Avg. Time to Hire
-                  </p>
-                  <p className="font-semibold">14 Days</p>
-                </div>
-                <div>
-                  <p className="text-blue-100 text-sm mb-1">Success Rate</p>
-                  <p className="font-semibold">87%</p>
-                </div>
-              </div>
-            </div>
+              </CardContent>
+            </Card>
           </div>
         </div>
       </div>

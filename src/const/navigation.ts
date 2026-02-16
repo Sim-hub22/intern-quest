@@ -6,6 +6,7 @@ import {
   LucideIcon,
   Users,
 } from "lucide-react";
+import { Route } from "next";
 
 export const PUBLIC_NAV_ITEMS = [
   { label: "Home", href: "/" },
@@ -18,7 +19,7 @@ export interface SidebarNavItem {
   label: string;
   icon: LucideIcon;
   description: string;
-  href: string;
+  href: Route;
 }
 
 export const RECRUITER_NAV_ITEMS = [
@@ -26,30 +27,30 @@ export const RECRUITER_NAV_ITEMS = [
     label: "Dashboard",
     icon: LayoutDashboard,
     description: "Overview & stats",
-    href: "/dashboard",
+    href: "/recruiter/dashboard",
   },
   {
     label: "Post Opportunity",
     icon: Briefcase,
     description: "Create new posting",
-    href: "/post-opportunity",
+    href: "/recruiter/post-opportunity",
   },
   {
     label: "Manage Opportunities",
     icon: ClipboardList,
     description: "View & edit postings",
-    href: "/manage-opportunities",
+    href: "/recruiter/manage-opportunities",
   },
   {
     label: "View Applications",
     icon: Users,
     description: "View all applications",
-    href: "/view-applications",
+    href: "/recruiter/view-applications",
   },
   {
     label: "Review Quizzes",
     icon: CheckSquare,
     description: "Grade submissions",
-    href: "/quiz-review",
+    href: "/recruiter/quiz-review",
   },
 ] as const satisfies Readonly<SidebarNavItem[]>;

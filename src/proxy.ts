@@ -1,8 +1,21 @@
 import { getSessionCookie } from "better-auth/cookies";
+import { Route } from "next";
 import { NextRequest, NextResponse } from "next/server";
 
-const protectedRoutes = ["/dashboard"];
-const authRoutes = ["/login", "/signup", "/forgot-password"];
+const protectedRoutes = [
+  "/recruiter/dashboard",
+  "/recruiter/manage-opportunities",
+  "/recruiter/post-opportunity",
+  "/recruiter/post-opportunity",
+  "/recruiter/quiz-review",
+  "/recruiter/view-applications",
+] as const satisfies Route[];
+
+const authRoutes = [
+  "/login",
+  "/signup",
+  "/forgot-password",
+] as const satisfies Route[];
 
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;

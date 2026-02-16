@@ -26,7 +26,7 @@ async function ProtectedLayout({ children }: { children: React.ReactNode }) {
       <AppSidebar />
       <SidebarInset className="overflow-hidden max-h-screen">
         <AppHeader />
-        <main className="flex-1 overflow-y-auto">{children}</main>
+        <main className="flex-1 overflow-y-auto bg-sidebar">{children}</main>
       </SidebarInset>
     </SidebarProvider>
   );

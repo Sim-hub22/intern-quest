@@ -1,9 +1,7 @@
-"use client";
-
 import * as React from "react";
 
 import { NavHeader } from "@/components/nav-header";
-import { NavMain } from "@/components/nav-main";
+import { NavMain, NavMainSkeleton } from "@/components/nav-main";
 import { NavUser } from "@/components/nav-user";
 import {
   Sidebar,
@@ -12,7 +10,22 @@ import {
   SidebarHeader,
   SidebarRail,
 } from "@/components/ui/sidebar";
-import { RECRUITER_NAV_ITEMS } from "@/const/navigation";
+import { auth } from "@/server/auth";
+import { headers } from "next/headers";
+import { redirect } from "next/navigation";
+import { Suspense } from "react";
+
+async function getUserRole() {
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
+
+  if (!session) {
+    return redirect("/login");
+  }
+
+  return session.user.role;
+}
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   return (
@@ -21,7 +34,9 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <NavHeader />
       </SidebarHeader>
       <SidebarContent className="bg-background">
-        <NavMain items={RECRUITER_NAV_ITEMS} />
+        <Suspense fallback={<NavMainSkeleton />}>
+          <NavMain rolePromise={getUserRole()} />
+        </Suspense>
       </SidebarContent>
       <SidebarFooter className="bg-background">
         <NavUser />
