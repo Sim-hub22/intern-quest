@@ -1,8 +1,3 @@
-import { publicProcedure, router } from "../index";
-
-export const appRouter = router({
-  healthCheck: publicProcedure.query(() => {
-    return "OK";
-  }),
-});
-export type AppRouter = typeof appRouter;
+export { applicationRouter } from "./application";
+export { opportunityRouter } from "./opportunity";
+export { profileRouter } from "./profile";

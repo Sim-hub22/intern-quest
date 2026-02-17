@@ -11,6 +11,8 @@
     "test": "vitest",
     "test:run": "vitest run",
     "test:coverage": "vitest run --coverage",
+    "test:db:setup": "node scripts/setup-test-db.mjs",
+    "test:db:teardown": "node scripts/teardown-test-db.mjs",
     "db:push": "drizzle-kit push",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
