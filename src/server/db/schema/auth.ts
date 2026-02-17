@@ -19,6 +19,13 @@ export const user = pgTable("user", {
   banReason: text("ban_reason"),
   banExpires: timestamp("ban_expires"),
   organization: text("organization"),
+  // Profile fields (added for Phase 1)
+  bio: text("bio"),
+  phone: text("phone"),
+  location: text("location"),
+  resumeUrl: text("resume_url"),
+  linkedinUrl: text("linkedin_url"),
+  website: text("website"),
 });
 
 export const account = pgTable(
@@ -63,6 +70,8 @@ export const verification = pgTable(
 
 export const userRelations = relations(user, ({ many }) => ({
   accounts: many(account),
+  // Other relations (opportunities, applications, etc.) are defined in their respective schema files
+  // to avoid circular dependencies
 }));
 
 export const accountRelations = relations(account, ({ one }) => ({
