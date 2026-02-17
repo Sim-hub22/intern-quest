@@ -1180,7 +1180,7 @@ describe("quizRouter", () => {
 
         const answers = quizData.questions.map((q) => ({
           questionId: q.id,
-          selectedAnswer: q.options[0]!.value,
+          selectedAnswer: (q.options as Array<{ label: string; value: string }>)[0]!.value,
         }));
 
         // First submission
@@ -1456,7 +1456,7 @@ describe("quizRouter", () => {
 
         const answers = quizData.questions.map((q) => ({
           questionId: q.id,
-          selectedAnswer: q.options[0]!.value,
+          selectedAnswer: (q.options as Array<{ label: string; value: string }>)[0]!.value,
         }));
 
         await candidate1Caller.submitAttempt({
@@ -1499,7 +1499,7 @@ describe("quizRouter", () => {
 
         const answers = quizData.questions.map((q) => ({
           questionId: q.id,
-          selectedAnswer: q.options[0]!.value,
+          selectedAnswer: (q.options as Array<{ label: string; value: string }>)[0]!.value,
         }));
 
         await candidateCaller.submitAttempt({
@@ -1613,7 +1613,7 @@ describe("quizRouter", () => {
 
         const answers = quizData.questions.map((q) => ({
           questionId: q.id,
-          selectedAnswer: q.options[0]!.value,
+          selectedAnswer: (q.options as Array<{ label: string; value: string }>)[0]!.value,
         }));
 
         await candidateCaller.submitAttempt({
