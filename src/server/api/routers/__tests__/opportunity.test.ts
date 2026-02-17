@@ -222,7 +222,7 @@ describe("opportunityRouter", () => {
           status: "draft",
         });
         expect(result.id).toBeTruthy();
-        expect(result.id.startsWith("opp-")).toBe(true);
+        expect(result.id).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i);
         expect(result.createdAt).toBeInstanceOf(Date);
         expect(result.updatedAt).toBeInstanceOf(Date);
       });
@@ -275,7 +275,7 @@ describe("opportunityRouter", () => {
         const result = await caller.create(validOpportunityInput);
 
         expect(result.id).toBeTruthy();
-        expect(result.id.startsWith("opp-")).toBe(true);
+        expect(result.id).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i);
       });
     });
 
@@ -299,11 +299,11 @@ describe("opportunityRouter", () => {
         const caller = opportunityRouter.createCaller(ctx);
 
         await expect(
-          caller.update({ id: "opp-123", title: "Updated Title" })
+          caller.update({ id: "00000000-0000-0000-0000-000000000123", title: "Updated Title" })
         ).rejects.toThrow(TRPCError);
 
         await expect(
-          caller.update({ id: "opp-123", title: "Updated Title" })
+          caller.update({ id: "00000000-0000-0000-0000-000000000123", title: "Updated Title" })
         ).rejects.toMatchObject({
           code: "UNAUTHORIZED",
         });
@@ -314,11 +314,11 @@ describe("opportunityRouter", () => {
         const caller = opportunityRouter.createCaller(ctx);
 
         await expect(
-          caller.update({ id: "opp-123", title: "Updated Title" })
+          caller.update({ id: "00000000-0000-0000-0000-000000000123", title: "Updated Title" })
         ).rejects.toThrow(TRPCError);
 
         await expect(
-          caller.update({ id: "opp-123", title: "Updated Title" })
+          caller.update({ id: "00000000-0000-0000-0000-000000000123", title: "Updated Title" })
         ).rejects.toMatchObject({
           code: "FORBIDDEN",
           message: "Recruiter access required",
@@ -490,11 +490,11 @@ describe("opportunityRouter", () => {
         const caller = opportunityRouter.createCaller(ctx);
 
         await expect(
-          caller.update({ id: "opp-nonexistent", title: "Updated" })
+          caller.update({ id: "00000000-0000-0000-0000-000000000000", title: "Updated" })
         ).rejects.toThrow(TRPCError);
 
         await expect(
-          caller.update({ id: "opp-nonexistent", title: "Updated" })
+          caller.update({ id: "00000000-0000-0000-0000-000000000000", title: "Updated" })
         ).rejects.toMatchObject({
           code: "NOT_FOUND",
           message: "Opportunity not found",
@@ -522,11 +522,11 @@ describe("opportunityRouter", () => {
         const caller = opportunityRouter.createCaller(ctx);
 
         await expect(
-          caller.delete({ id: "opp-123" })
+          caller.delete({ id: "00000000-0000-0000-0000-000000000123" })
         ).rejects.toThrow(TRPCError);
 
         await expect(
-          caller.delete({ id: "opp-123" })
+          caller.delete({ id: "00000000-0000-0000-0000-000000000123" })
         ).rejects.toMatchObject({
           code: "UNAUTHORIZED",
         });
@@ -537,11 +537,11 @@ describe("opportunityRouter", () => {
         const caller = opportunityRouter.createCaller(ctx);
 
         await expect(
-          caller.delete({ id: "opp-123" })
+          caller.delete({ id: "00000000-0000-0000-0000-000000000123" })
         ).rejects.toThrow(TRPCError);
 
         await expect(
-          caller.delete({ id: "opp-123" })
+          caller.delete({ id: "00000000-0000-0000-0000-000000000123" })
         ).rejects.toMatchObject({
           code: "FORBIDDEN",
         });
@@ -667,11 +667,11 @@ describe("opportunityRouter", () => {
         const caller = opportunityRouter.createCaller(ctx);
 
         await expect(
-          caller.delete({ id: "opp-nonexistent" })
+          caller.delete({ id: "00000000-0000-0000-0000-000000000000" })
         ).rejects.toThrow(TRPCError);
 
         await expect(
-          caller.delete({ id: "opp-nonexistent" })
+          caller.delete({ id: "00000000-0000-0000-0000-000000000000" })
         ).rejects.toMatchObject({
           code: "NOT_FOUND",
           message: "Opportunity not found",
@@ -959,11 +959,11 @@ describe("opportunityRouter", () => {
         const caller = opportunityRouter.createCaller(ctx);
 
         await expect(
-          caller.getById({ id: "opp-nonexistent" })
+          caller.getById({ id: "00000000-0000-0000-0000-000000000000" })
         ).rejects.toThrow(TRPCError);
 
         await expect(
-          caller.getById({ id: "opp-nonexistent" })
+          caller.getById({ id: "00000000-0000-0000-0000-000000000000" })
         ).rejects.toMatchObject({
           code: "NOT_FOUND",
           message: "Opportunity not found",
@@ -1967,14 +1967,14 @@ describe("opportunityRouter", () => {
 
         await expect(
           caller.updateStatus({
-            id: "opp-123",
+            id: "00000000-0000-0000-0000-000000000123",
             status: "published",
           })
         ).rejects.toThrow(TRPCError);
 
         await expect(
           caller.updateStatus({
-            id: "opp-123",
+            id: "00000000-0000-0000-0000-000000000123",
             status: "published",
           })
         ).rejects.toMatchObject({
@@ -1988,14 +1988,14 @@ describe("opportunityRouter", () => {
 
         await expect(
           caller.updateStatus({
-            id: "opp-123",
+            id: "00000000-0000-0000-0000-000000000123",
             status: "published",
           })
         ).rejects.toThrow(TRPCError);
 
         await expect(
           caller.updateStatus({
-            id: "opp-123",
+            id: "00000000-0000-0000-0000-000000000123",
             status: "published",
           })
         ).rejects.toMatchObject({
@@ -2233,14 +2233,14 @@ describe("opportunityRouter", () => {
 
         await expect(
           caller.updateStatus({
-            id: "opp-nonexistent",
+            id: "00000000-0000-0000-0000-000000000000",
             status: "published",
           })
         ).rejects.toThrow(TRPCError);
 
         await expect(
           caller.updateStatus({
-            id: "opp-nonexistent",
+            id: "00000000-0000-0000-0000-000000000000",
             status: "published",
           })
         ).rejects.toMatchObject({

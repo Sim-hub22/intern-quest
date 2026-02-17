@@ -438,10 +438,10 @@ describe("quizRouter", () => {
         const caller = quizRouter.createCaller(ctx);
 
         await expect(
-          caller.update({ id: "quiz-123", title: "Updated Title" })
+          caller.update({ id: "00000000-0000-0000-0000-00000000q123", title: "Updated Title" })
         ).rejects.toThrow(TRPCError);
         await expect(
-          caller.update({ id: "quiz-123", title: "Updated Title" })
+          caller.update({ id: "00000000-0000-0000-0000-00000000q123", title: "Updated Title" })
         ).rejects.toMatchObject({
           code: "UNAUTHORIZED",
         });
@@ -452,10 +452,10 @@ describe("quizRouter", () => {
         const caller = quizRouter.createCaller(ctx);
 
         await expect(
-          caller.update({ id: "quiz-123", title: "Updated Title" })
+          caller.update({ id: "00000000-0000-0000-0000-00000000q123", title: "Updated Title" })
         ).rejects.toThrow(TRPCError);
         await expect(
-          caller.update({ id: "quiz-123", title: "Updated Title" })
+          caller.update({ id: "00000000-0000-0000-0000-00000000q123", title: "Updated Title" })
         ).rejects.toMatchObject({
           code: "FORBIDDEN",
         });
@@ -717,10 +717,10 @@ describe("quizRouter", () => {
         const caller = quizRouter.createCaller(ctx);
 
         await expect(
-          caller.getByOpportunity({ opportunityId: "opp-123" })
+          caller.getByOpportunity({ opportunityId: "00000000-0000-0000-0000-000000000123" })
         ).rejects.toThrow(TRPCError);
         await expect(
-          caller.getByOpportunity({ opportunityId: "opp-123" })
+          caller.getByOpportunity({ opportunityId: "00000000-0000-0000-0000-000000000123" })
         ).rejects.toMatchObject({
           code: "UNAUTHORIZED",
         });
@@ -852,10 +852,10 @@ describe("quizRouter", () => {
         const caller = quizRouter.createCaller(ctx);
 
         await expect(
-          caller.getForAttempt({ quizId: "quiz-123" })
+          caller.getForAttempt({ quizId: "00000000-0000-0000-0000-00000000q123" })
         ).rejects.toThrow(TRPCError);
         await expect(
-          caller.getForAttempt({ quizId: "quiz-123" })
+          caller.getForAttempt({ quizId: "00000000-0000-0000-0000-00000000q123" })
         ).rejects.toMatchObject({
           code: "UNAUTHORIZED",
         });
@@ -866,10 +866,10 @@ describe("quizRouter", () => {
         const caller = quizRouter.createCaller(ctx);
 
         await expect(
-          caller.getForAttempt({ quizId: "quiz-123" })
+          caller.getForAttempt({ quizId: "00000000-0000-0000-0000-00000000q123" })
         ).rejects.toThrow(TRPCError);
         await expect(
-          caller.getForAttempt({ quizId: "quiz-123" })
+          caller.getForAttempt({ quizId: "00000000-0000-0000-0000-00000000q123" })
         ).rejects.toMatchObject({
           code: "FORBIDDEN",
         });
@@ -1042,13 +1042,13 @@ describe("quizRouter", () => {
 
         await expect(
           caller.submitAttempt({
-            attemptId: "attempt-123",
+            attemptId: "00000000-0000-0000-0000-000000attem1",
             answers: [],
           })
         ).rejects.toThrow(TRPCError);
         await expect(
           caller.submitAttempt({
-            attemptId: "attempt-123",
+            attemptId: "00000000-0000-0000-0000-000000attem1",
             answers: [],
           })
         ).rejects.toMatchObject({
@@ -1062,13 +1062,13 @@ describe("quizRouter", () => {
 
         await expect(
           caller.submitAttempt({
-            attemptId: "attempt-123",
+            attemptId: "00000000-0000-0000-0000-000000attem1",
             answers: [],
           })
         ).rejects.toThrow(TRPCError);
         await expect(
           caller.submitAttempt({
-            attemptId: "attempt-123",
+            attemptId: "00000000-0000-0000-0000-000000attem1",
             answers: [],
           })
         ).rejects.toMatchObject({
@@ -1096,7 +1096,7 @@ describe("quizRouter", () => {
 
         await expect(
           caller.submitAttempt({
-            attemptId: "attempt-123",
+            attemptId: "00000000-0000-0000-0000-000000attem1",
             answers: [{ questionId: "", selectedAnswer: "answer" }],
           })
         ).rejects.toThrow();
@@ -1400,10 +1400,10 @@ describe("quizRouter", () => {
         const caller = quizRouter.createCaller(ctx);
 
         await expect(
-          caller.getAttemptResult({ attemptId: "attempt-123" })
+          caller.getAttemptResult({ attemptId: "00000000-0000-0000-0000-000000attem1" })
         ).rejects.toThrow(TRPCError);
         await expect(
-          caller.getAttemptResult({ attemptId: "attempt-123" })
+          caller.getAttemptResult({ attemptId: "00000000-0000-0000-0000-000000attem1" })
         ).rejects.toMatchObject({
           code: "UNAUTHORIZED",
         });
@@ -1427,10 +1427,10 @@ describe("quizRouter", () => {
         const caller = quizRouter.createCaller(ctx);
 
         await expect(
-          caller.getAttemptResult({ attemptId: "attempt-nonexistent" })
+          caller.getAttemptResult({ attemptId: "00000000-0000-0000-0000-000000attem1" })
         ).rejects.toThrow(TRPCError);
         await expect(
-          caller.getAttemptResult({ attemptId: "attempt-nonexistent" })
+          caller.getAttemptResult({ attemptId: "00000000-0000-0000-0000-000000attem1" })
         ).rejects.toMatchObject({
           code: "NOT_FOUND",
           message: "Attempt not found",
@@ -1682,10 +1682,10 @@ describe("quizRouter", () => {
         const caller = quizRouter.createCaller(ctx);
 
         await expect(
-          caller.listAttempts({ quizId: "quiz-123" })
+          caller.listAttempts({ quizId: "00000000-0000-0000-0000-00000000q123" })
         ).rejects.toThrow(TRPCError);
         await expect(
-          caller.listAttempts({ quizId: "quiz-123" })
+          caller.listAttempts({ quizId: "00000000-0000-0000-0000-00000000q123" })
         ).rejects.toMatchObject({
           code: "UNAUTHORIZED",
         });
@@ -1696,10 +1696,10 @@ describe("quizRouter", () => {
         const caller = quizRouter.createCaller(ctx);
 
         await expect(
-          caller.listAttempts({ quizId: "quiz-123" })
+          caller.listAttempts({ quizId: "00000000-0000-0000-0000-00000000q123" })
         ).rejects.toThrow(TRPCError);
         await expect(
-          caller.listAttempts({ quizId: "quiz-123" })
+          caller.listAttempts({ quizId: "00000000-0000-0000-0000-00000000q123" })
         ).rejects.toMatchObject({
           code: "FORBIDDEN",
         });
@@ -1719,7 +1719,7 @@ describe("quizRouter", () => {
         const caller = quizRouter.createCaller(ctx);
 
         await expect(
-          caller.listAttempts({ quizId: "quiz-123", limit: 0 })
+          caller.listAttempts({ quizId: "00000000-0000-0000-0000-00000000q123", limit: 0 })
         ).rejects.toThrow();
       });
 
@@ -1728,7 +1728,7 @@ describe("quizRouter", () => {
         const caller = quizRouter.createCaller(ctx);
 
         await expect(
-          caller.listAttempts({ quizId: "quiz-123", limit: 101 })
+          caller.listAttempts({ quizId: "00000000-0000-0000-0000-00000000q123", limit: 101 })
         ).rejects.toThrow();
       });
 
@@ -1737,7 +1737,7 @@ describe("quizRouter", () => {
         const caller = quizRouter.createCaller(ctx);
 
         await expect(
-          caller.listAttempts({ quizId: "quiz-123", offset: -1 })
+          caller.listAttempts({ quizId: "00000000-0000-0000-0000-00000000q123", offset: -1 })
         ).rejects.toThrow();
       });
     });
@@ -1748,10 +1748,10 @@ describe("quizRouter", () => {
         const caller = quizRouter.createCaller(ctx);
 
         await expect(
-          caller.listAttempts({ quizId: "quiz-nonexistent" })
+          caller.listAttempts({ quizId: "00000000-0000-0000-0000-00000000q123" })
         ).rejects.toThrow(TRPCError);
         await expect(
-          caller.listAttempts({ quizId: "quiz-nonexistent" })
+          caller.listAttempts({ quizId: "00000000-0000-0000-0000-00000000q123" })
         ).rejects.toMatchObject({
           code: "NOT_FOUND",
           message: "Quiz not found",

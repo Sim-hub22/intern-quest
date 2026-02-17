@@ -101,14 +101,14 @@ describe("applicationRouter", () => {
 
         await expect(
           caller.create({
-            opportunityId: "opp-123",
+            opportunityId: "00000000-0000-0000-0000-000000000123",
             coverLetter: "Test cover letter with enough characters to pass validation requirements.",
           })
         ).rejects.toThrow(TRPCError);
 
         await expect(
           caller.create({
-            opportunityId: "opp-123",
+            opportunityId: "00000000-0000-0000-0000-000000000123",
             coverLetter: "Test cover letter with enough characters to pass validation requirements.",
           })
         ).rejects.toMatchObject({
@@ -122,14 +122,14 @@ describe("applicationRouter", () => {
 
         await expect(
           caller.create({
-            opportunityId: "opp-123",
+            opportunityId: "00000000-0000-0000-0000-000000000123",
             coverLetter: "Test cover letter with enough characters to pass validation requirements.",
           })
         ).rejects.toThrow(TRPCError);
 
         await expect(
           caller.create({
-            opportunityId: "opp-123",
+            opportunityId: "00000000-0000-0000-0000-000000000123",
             coverLetter: "Test cover letter with enough characters to pass validation requirements.",
           })
         ).rejects.toMatchObject({
@@ -255,14 +255,14 @@ describe("applicationRouter", () => {
 
         await expect(
           caller.create({
-            opportunityId: "opp-nonexistent",
+            opportunityId: "00000000-0000-0000-0000-000000000000",
             coverLetter: "Test cover letter with enough characters to pass validation requirements.",
           })
         ).rejects.toThrow(TRPCError);
 
         await expect(
           caller.create({
-            opportunityId: "opp-nonexistent",
+            opportunityId: "00000000-0000-0000-0000-000000000000",
             coverLetter: "Test cover letter with enough characters to pass validation requirements.",
           })
         ).rejects.toMatchObject({
@@ -532,7 +532,7 @@ describe("applicationRouter", () => {
 
         await expect(
           caller.create({
-            opportunityId: "opp-123",
+            opportunityId: "00000000-0000-0000-0000-000000000123",
             coverLetter: "short",
           })
         ).rejects.toThrow();
@@ -546,11 +546,11 @@ describe("applicationRouter", () => {
         const ctx = createUnauthenticatedContext();
         const caller = applicationRouter.createCaller(ctx);
 
-        await expect(caller.getById({ id: "app-123" })).rejects.toThrow(
+        await expect(caller.getById({ id: "00000000-0000-0000-0000-000000000a23" })).rejects.toThrow(
           TRPCError
         );
 
-        await expect(caller.getById({ id: "app-123" })).rejects.toMatchObject({
+        await expect(caller.getById({ id: "00000000-0000-0000-0000-000000000a23" })).rejects.toMatchObject({
           code: "UNAUTHORIZED",
         });
       });
@@ -745,11 +745,11 @@ describe("applicationRouter", () => {
         const caller = applicationRouter.createCaller(ctx);
 
         await expect(
-          caller.getById({ id: "app-nonexistent" })
+          caller.getById({ id: "00000000-0000-0000-0000-a00000000000" })
         ).rejects.toThrow(TRPCError);
 
         await expect(
-          caller.getById({ id: "app-nonexistent" })
+          caller.getById({ id: "00000000-0000-0000-0000-a00000000000" })
         ).rejects.toMatchObject({
           code: "NOT_FOUND",
           message: "Application not found",
@@ -1193,11 +1193,11 @@ describe("applicationRouter", () => {
         const caller = applicationRouter.createCaller(ctx);
 
         await expect(
-          caller.listByOpportunity({ opportunityId: "opp-123" })
+          caller.listByOpportunity({ opportunityId: "00000000-0000-0000-0000-000000000123" })
         ).rejects.toThrow(TRPCError);
 
         await expect(
-          caller.listByOpportunity({ opportunityId: "opp-123" })
+          caller.listByOpportunity({ opportunityId: "00000000-0000-0000-0000-000000000123" })
         ).rejects.toMatchObject({
           code: "UNAUTHORIZED",
         });
@@ -1208,11 +1208,11 @@ describe("applicationRouter", () => {
         const caller = applicationRouter.createCaller(ctx);
 
         await expect(
-          caller.listByOpportunity({ opportunityId: "opp-123" })
+          caller.listByOpportunity({ opportunityId: "00000000-0000-0000-0000-000000000123" })
         ).rejects.toThrow(TRPCError);
 
         await expect(
-          caller.listByOpportunity({ opportunityId: "opp-123" })
+          caller.listByOpportunity({ opportunityId: "00000000-0000-0000-0000-000000000123" })
         ).rejects.toMatchObject({
           code: "FORBIDDEN",
         });
@@ -1281,11 +1281,11 @@ describe("applicationRouter", () => {
         const caller = applicationRouter.createCaller(ctx);
 
         await expect(
-          caller.listByOpportunity({ opportunityId: "opp-nonexistent" })
+          caller.listByOpportunity({ opportunityId: "00000000-0000-0000-0000-000000000000" })
         ).rejects.toThrow(TRPCError);
 
         await expect(
-          caller.listByOpportunity({ opportunityId: "opp-nonexistent" })
+          caller.listByOpportunity({ opportunityId: "00000000-0000-0000-0000-000000000000" })
         ).rejects.toMatchObject({
           code: "NOT_FOUND",
           message: "Opportunity not found",
