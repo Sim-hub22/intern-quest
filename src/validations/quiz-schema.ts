@@ -47,3 +47,21 @@ export const submitQuizAttemptSchema = z.object({
   attemptId: z.string().check(z.minLength(1, "This field is required")),
   answers: z.array(quizAnswerSchema),
 });
+
+export const getQuizByOpportunitySchema = z.object({
+  opportunityId: z.string().check(z.minLength(1, "This field is required")),
+});
+
+export const startQuizAttemptSchema = z.object({
+  quizId: z.string().check(z.minLength(1, "This field is required")),
+});
+
+export const getAttemptResultSchema = z.object({
+  attemptId: z.string().check(z.minLength(1, "This field is required")),
+});
+
+export const listQuizAttemptsSchema = z.object({
+  quizId: z.string().check(z.minLength(1, "This field is required")),
+  limit: z.number().check(z.gte(1)).check(z.lte(100)).default(50),
+  offset: z.number().check(z.gte(0)).default(0),
+});

@@ -2,6 +2,10 @@ import { describe, expect, it } from "vitest";
 
 import {
   createQuizSchema,
+  getAttemptResultSchema,
+  getQuizByOpportunitySchema,
+  listQuizAttemptsSchema,
+  startQuizAttemptSchema,
   submitQuizAttemptSchema,
   updateQuizSchema,
 } from "../quiz-schema";
@@ -313,5 +317,161 @@ describe("submitQuizAttemptSchema", () => {
     };
     const result = submitQuizAttemptSchema.safeParse(data);
     expect(result.success).toBe(true);
+  });
+});
+
+describe("getQuizByOpportunitySchema", () => {
+  it("should validate opportunityId", () => {
+    const result = getQuizByOpportunitySchema.safeParse({
+      opportunityId: "opp_123",
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it("should reject empty opportunityId", () => {
+    const result = getQuizByOpportunitySchema.safeParse({
+      opportunityId: "",
+    });
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      expect(result.error.issues[0]?.path).toEqual(["opportunityId"]);
+    }
+  });
+
+  it("should reject missing opportunityId", () => {
+    const result = getQuizByOpportunitySchema.safeParse({});
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      expect(result.error.issues[0]?.path).toEqual(["opportunityId"]);
+    }
+  });
+});
+
+describe("startQuizAttemptSchema", () => {
+  it("should validate quizId", () => {
+    const result = startQuizAttemptSchema.safeParse({ quizId: "quiz_123" });
+    expect(result.success).toBe(true);
+  });
+
+  it("should reject empty quizId", () => {
+    const result = startQuizAttemptSchema.safeParse({ quizId: "" });
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      expect(result.error.issues[0]?.path).toEqual(["quizId"]);
+    }
+  });
+
+  it("should reject missing quizId", () => {
+    const result = startQuizAttemptSchema.safeParse({});
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      expect(result.error.issues[0]?.path).toEqual(["quizId"]);
+    }
+  });
+});
+
+describe("getAttemptResultSchema", () => {
+  it("should validate attemptId", () => {
+    const result = getAttemptResultSchema.safeParse({
+      attemptId: "attempt_123",
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it("should reject empty attemptId", () => {
+    const result = getAttemptResultSchema.safeParse({ attemptId: "" });
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      expect(result.error.issues[0]?.path).toEqual(["attemptId"]);
+    }
+  });
+
+  it("should reject missing attemptId", () => {
+    const result = getAttemptResultSchema.safeParse({});
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      expect(result.error.issues[0]?.path).toEqual(["attemptId"]);
+    }
+  });
+});
+
+describe("listQuizAttemptsSchema", () => {
+  it("should validate quizId only", () => {
+    const result = listQuizAttemptsSchema.safeParse({ quizId: "quiz_123" });
+    expect(result.success).toBe(true);
+  });
+
+  it("should validate quizId with pagination", () => {
+    const result = listQuizAttemptsSchema.safeParse({
+      quizId: "quiz_123",
+      limit: 10,
+      offset: 0,
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it("should accept default limit if not provided", () => {
+    const result = listQuizAttemptsSchema.safeParse({ quizId: "quiz_123" });
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.limit).toBe(50); // Default limit
+    }
+  });
+
+  it("should accept default offset if not provided", () => {
+    const result = listQuizAttemptsSchema.safeParse({ quizId: "quiz_123" });
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.offset).toBe(0); // Default offset
+    }
+  });
+
+  it("should reject limit less than 1", () => {
+    const result = listQuizAttemptsSchema.safeParse({
+      quizId: "quiz_123",
+      limit: 0,
+    });
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      expect(result.error.issues[0]?.path).toEqual(["limit"]);
+    }
+  });
+
+  it("should reject limit greater than 100", () => {
+    const result = listQuizAttemptsSchema.safeParse({
+      quizId: "quiz_123",
+      limit: 101,
+    });
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      expect(result.error.issues[0]?.path).toEqual(["limit"]);
+    }
+  });
+
+  it("should reject negative offset", () => {
+    const result = listQuizAttemptsSchema.safeParse({
+      quizId: "quiz_123",
+      offset: -1,
+    });
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      expect(result.error.issues[0]?.path).toEqual(["offset"]);
+    }
+  });
+
+  it("should reject empty quizId", () => {
+    const result = listQuizAttemptsSchema.safeParse({ quizId: "" });
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      expect(result.error.issues[0]?.path).toEqual(["quizId"]);
+    }
+  });
+
+  it("should reject missing quizId", () => {
+    const result = listQuizAttemptsSchema.safeParse({});
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      expect(result.error.issues[0]?.path).toEqual(["quizId"]);
+    }
   });
 });
