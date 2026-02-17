@@ -1674,4 +1674,305 @@ describe("quizRouter", () => {
       });
     });
   });
+
+  describe("listAttempts", () => {
+    describe("authorization", () => {
+      it("should reject unauthenticated requests", async () => {
+        const ctx = createUnauthenticatedContext();
+        const caller = quizRouter.createCaller(ctx);
+
+        await expect(
+          caller.listAttempts({ quizId: "quiz-123" })
+        ).rejects.toThrow(TRPCError);
+        await expect(
+          caller.listAttempts({ quizId: "quiz-123" })
+        ).rejects.toMatchObject({
+          code: "UNAUTHORIZED",
+        });
+      });
+
+      it("should reject candidates", async () => {
+        const ctx = createCandidateContext();
+        const caller = quizRouter.createCaller(ctx);
+
+        await expect(
+          caller.listAttempts({ quizId: "quiz-123" })
+        ).rejects.toThrow(TRPCError);
+        await expect(
+          caller.listAttempts({ quizId: "quiz-123" })
+        ).rejects.toMatchObject({
+          code: "FORBIDDEN",
+        });
+      });
+    });
+
+    describe("validation", () => {
+      it("should reject invalid quizId", async () => {
+        const ctx = createRecruiterContext();
+        const caller = quizRouter.createCaller(ctx);
+
+        await expect(caller.listAttempts({ quizId: "" })).rejects.toThrow();
+      });
+
+      it("should reject invalid limit (too low)", async () => {
+        const ctx = createRecruiterContext();
+        const caller = quizRouter.createCaller(ctx);
+
+        await expect(
+          caller.listAttempts({ quizId: "quiz-123", limit: 0 })
+        ).rejects.toThrow();
+      });
+
+      it("should reject invalid limit (too high)", async () => {
+        const ctx = createRecruiterContext();
+        const caller = quizRouter.createCaller(ctx);
+
+        await expect(
+          caller.listAttempts({ quizId: "quiz-123", limit: 101 })
+        ).rejects.toThrow();
+      });
+
+      it("should reject invalid offset (negative)", async () => {
+        const ctx = createRecruiterContext();
+        const caller = quizRouter.createCaller(ctx);
+
+        await expect(
+          caller.listAttempts({ quizId: "quiz-123", offset: -1 })
+        ).rejects.toThrow();
+      });
+    });
+
+    describe("business logic", () => {
+      it("should throw NOT_FOUND if quiz does not exist", async () => {
+        const ctx = createRecruiterContext();
+        const caller = quizRouter.createCaller(ctx);
+
+        await expect(
+          caller.listAttempts({ quizId: "quiz-nonexistent" })
+        ).rejects.toThrow(TRPCError);
+        await expect(
+          caller.listAttempts({ quizId: "quiz-nonexistent" })
+        ).rejects.toMatchObject({
+          code: "NOT_FOUND",
+          message: "Quiz not found",
+        });
+      });
+
+      it("should throw FORBIDDEN if recruiter tries to list attempts for quiz they don't own", async () => {
+        // Recruiter 1 creates quiz
+        const recruiter1Ctx = createRecruiterContext("recruiter-1");
+        const recruiter1Caller = quizRouter.createCaller(recruiter1Ctx);
+        const opp = await createTestOpportunity("recruiter-1");
+        const createdQuiz = await recruiter1Caller.create({
+          ...validQuizData,
+          opportunityId: opp.id,
+        });
+
+        // Recruiter 2 tries to list attempts
+        const recruiter2Ctx = createRecruiterContext("recruiter-2");
+        const recruiter2Caller = quizRouter.createCaller(recruiter2Ctx);
+
+        await expect(
+          recruiter2Caller.listAttempts({ quizId: createdQuiz.id })
+        ).rejects.toThrow(TRPCError);
+        await expect(
+          recruiter2Caller.listAttempts({ quizId: createdQuiz.id })
+        ).rejects.toMatchObject({
+          code: "FORBIDDEN",
+          message: "You do not have permission to view attempts for this quiz",
+        });
+      });
+    });
+
+    describe("success cases", () => {
+      it("should return empty list when no attempts exist", async () => {
+        const ctx = createRecruiterContext("recruiter-1");
+        const caller = quizRouter.createCaller(ctx);
+        const opp = await createTestOpportunity("recruiter-1");
+        const createdQuiz = await caller.create({
+          ...validQuizData,
+          opportunityId: opp.id,
+        });
+
+        const result = await caller.listAttempts({ quizId: createdQuiz.id });
+
+        expect(result.attempts).toEqual([]);
+        expect(result.total).toBe(0);
+      });
+
+      it("should return list of attempts with candidate info", async () => {
+        const recruiterCtx = createRecruiterContext("recruiter-1");
+        const recruiterCaller = quizRouter.createCaller(recruiterCtx);
+        const opp = await createTestOpportunity("recruiter-1");
+        const createdQuiz = await recruiterCaller.create({
+          ...validQuizData,
+          opportunityId: opp.id,
+        });
+
+        // Create attempts from multiple candidates
+        const candidate1Ctx = createCandidateContext("candidate-1");
+        const candidate1Caller = quizRouter.createCaller(candidate1Ctx);
+        const { attempt: attempt1, quiz: quizData1 } =
+          await candidate1Caller.getForAttempt({
+            quizId: createdQuiz.id,
+          });
+
+        // Submit first attempt
+        await candidate1Caller.submitAttempt({
+          attemptId: attempt1.id,
+          answers: quizData1.questions.map((q) => ({
+            questionId: q.id,
+            selectedAnswer: validQuizData.questions[0]!.correctAnswer,
+          })),
+        });
+
+        const candidate2Ctx = createCandidateContext("candidate-2");
+        const candidate2Caller = quizRouter.createCaller(candidate2Ctx);
+        const { attempt: attempt2, quiz: quizData2 } =
+          await candidate2Caller.getForAttempt({
+            quizId: createdQuiz.id,
+          });
+
+        // Submit second attempt
+        await candidate2Caller.submitAttempt({
+          attemptId: attempt2.id,
+          answers: quizData2.questions.map((q) => ({
+            questionId: q.id,
+            selectedAnswer: "wrong answer",
+          })),
+        });
+
+        // List attempts
+        const result = await recruiterCaller.listAttempts({
+          quizId: createdQuiz.id,
+        });
+
+        expect(result.total).toBe(2);
+        expect(result.attempts).toHaveLength(2);
+
+        // Check first attempt
+        const attemptRecord1 = result.attempts.find(
+          (a) => a.candidateId === "candidate-1"
+        );
+        expect(attemptRecord1).toBeDefined();
+        expect(attemptRecord1!.score).toBeDefined();
+        expect(attemptRecord1!.passed).toBeDefined();
+        expect(attemptRecord1!.submittedAt).toBeDefined();
+        expect(attemptRecord1!.candidate).toMatchObject({
+          id: "candidate-1",
+          email: "candidate-1@example.com",
+        });
+
+        // Check second attempt
+        const attemptRecord2 = result.attempts.find(
+          (a) => a.candidateId === "candidate-2"
+        );
+        expect(attemptRecord2).toBeDefined();
+        expect(attemptRecord2!.candidate).toMatchObject({
+          id: "candidate-2",
+          email: "candidate-2@example.com",
+        });
+      });
+
+      it("should support pagination with limit and offset", async () => {
+        const recruiterCtx = createRecruiterContext("recruiter-1");
+        const recruiterCaller = quizRouter.createCaller(recruiterCtx);
+        const opp = await createTestOpportunity("recruiter-1");
+        const createdQuiz = await recruiterCaller.create({
+          ...validQuizData,
+          opportunityId: opp.id,
+        });
+
+        // Create 3 attempts
+        for (const candidateId of ["candidate-1", "candidate-2", "candidate-3"]) {
+          const candidateCtx = createCandidateContext(candidateId);
+          const candidateCaller = quizRouter.createCaller(candidateCtx);
+          const { attempt, quiz: quizData } =
+            await candidateCaller.getForAttempt({
+              quizId: createdQuiz.id,
+            });
+
+          await candidateCaller.submitAttempt({
+            attemptId: attempt.id,
+            answers: quizData.questions.map((q) => ({
+              questionId: q.id,
+              selectedAnswer: "test",
+            })),
+          });
+        }
+
+        // Get first page (limit 2)
+        const page1 = await recruiterCaller.listAttempts({
+          quizId: createdQuiz.id,
+          limit: 2,
+        });
+
+        expect(page1.total).toBe(3);
+        expect(page1.attempts).toHaveLength(2);
+
+        // Get second page (offset 2, limit 2)
+        const page2 = await recruiterCaller.listAttempts({
+          quizId: createdQuiz.id,
+          limit: 2,
+          offset: 2,
+        });
+
+        expect(page2.total).toBe(3);
+        expect(page2.attempts).toHaveLength(1);
+      }, 15000); // 15 second timeout
+
+      it("should order attempts by submittedAt (most recent first)", async () => {
+        const recruiterCtx = createRecruiterContext("recruiter-1");
+        const recruiterCaller = quizRouter.createCaller(recruiterCtx);
+        const opp = await createTestOpportunity("recruiter-1");
+        const createdQuiz = await recruiterCaller.create({
+          ...validQuizData,
+          opportunityId: opp.id,
+        });
+
+        // Create attempts sequentially
+        const candidate1Ctx = createCandidateContext("candidate-1");
+        const candidate1Caller = quizRouter.createCaller(candidate1Ctx);
+        const { attempt: attempt1, quiz: quizData1 } =
+          await candidate1Caller.getForAttempt({
+            quizId: createdQuiz.id,
+          });
+
+        await candidate1Caller.submitAttempt({
+          attemptId: attempt1.id,
+          answers: quizData1.questions.map((q) => ({
+            questionId: q.id,
+            selectedAnswer: "test",
+          })),
+        });
+
+        // Small delay to ensure different timestamps
+        await new Promise((resolve) => setTimeout(resolve, 100));
+
+        const candidate2Ctx = createCandidateContext("candidate-2");
+        const candidate2Caller = quizRouter.createCaller(candidate2Ctx);
+        const { attempt: attempt2, quiz: quizData2 } =
+          await candidate2Caller.getForAttempt({
+            quizId: createdQuiz.id,
+          });
+
+        await candidate2Caller.submitAttempt({
+          attemptId: attempt2.id,
+          answers: quizData2.questions.map((q) => ({
+            questionId: q.id,
+            selectedAnswer: "test",
+          })),
+        });
+
+        const result = await recruiterCaller.listAttempts({
+          quizId: createdQuiz.id,
+        });
+
+        expect(result.attempts).toHaveLength(2);
+        // Most recent (candidate-2) should be first
+        expect(result.attempts[0]!.candidateId).toBe("candidate-2");
+        expect(result.attempts[1]!.candidateId).toBe("candidate-1");
+      }, 15000); // 15 second timeout
+    });
+  });
 });

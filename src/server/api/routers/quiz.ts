@@ -1,9 +1,10 @@
 import { TRPCError } from "@trpc/server";
-import { eq, asc, and } from "drizzle-orm";
+import { eq, asc, desc, and, sql } from "drizzle-orm";
 import { z } from "zod";
 import { db } from "@/server/db";
 import { quiz, quizQuestion, quizAttempt, quizAnswer } from "@/server/db/schema/quiz";
 import { opportunity } from "@/server/db/schema/opportunity";
+import { user } from "@/server/db/schema/auth";
 import { 
   createQuizSchema, 
   updateQuizSchema,
@@ -11,6 +12,7 @@ import {
   startQuizAttemptSchema,
   submitQuizAttemptSchema,
   getAttemptResultSchema,
+  listQuizAttemptsSchema,
 } from "@/validations/quiz-schema";
 import { recruiterProcedure, protectedProcedure, candidateProcedure, router } from "../index";
 
@@ -430,6 +432,68 @@ export const quizRouter = router({
         attempt,
         answers,
         questions,
+      };
+    }),
+
+  listAttempts: recruiterProcedure
+    .input(listQuizAttemptsSchema)
+    .query(async ({ ctx, input }) => {
+      // 1. Find the quiz and verify ownership
+      const [quizRecord] = await db
+        .select({ recruiterId: opportunity.recruiterId })
+        .from(quiz)
+        .innerJoin(opportunity, eq(quiz.opportunityId, opportunity.id))
+        .where(eq(quiz.id, input.quizId));
+
+      if (!quizRecord) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Quiz not found",
+        });
+      }
+
+      if (quizRecord.recruiterId !== ctx.session.user.id) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "You do not have permission to view attempts for this quiz",
+        });
+      }
+
+      // 2. Get total count of attempts
+      const [countResult] = await db
+        .select({ count: sql<number>`count(*)::int` })
+        .from(quizAttempt)
+        .where(eq(quizAttempt.quizId, input.quizId));
+
+      const total = countResult?.count ?? 0;
+
+      // 3. Get paginated attempts with candidate info
+      const attempts = await db
+        .select({
+          id: quizAttempt.id,
+          quizId: quizAttempt.quizId,
+          candidateId: quizAttempt.candidateId,
+          score: quizAttempt.score,
+          passed: quizAttempt.passed,
+          tabSwitchCount: quizAttempt.tabSwitchCount,
+          startedAt: quizAttempt.startedAt,
+          submittedAt: quizAttempt.submittedAt,
+          candidate: {
+            id: user.id,
+            email: user.email,
+            name: user.name,
+          },
+        })
+        .from(quizAttempt)
+        .innerJoin(user, eq(quizAttempt.candidateId, user.id))
+        .where(eq(quizAttempt.quizId, input.quizId))
+        .orderBy(desc(quizAttempt.submittedAt))
+        .limit(input.limit ?? 50)
+        .offset(input.offset ?? 0);
+
+      return {
+        attempts,
+        total,
       };
     }),
 });
