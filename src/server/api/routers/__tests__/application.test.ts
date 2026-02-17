@@ -521,7 +521,10 @@ describe("applicationRouter", () => {
           coverLetter: "Test cover letter with enough characters to pass validation requirements.",
         });
 
-        expect(result.id).toMatch(/^app-\d+-[a-z0-9]+$/);
+        // Application IDs are UUIDs (schema: uuid().defaultRandom())
+        expect(result.id).toMatch(
+          /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+        );
       });
     });
 
@@ -1735,16 +1738,18 @@ describe("applicationRouter", () => {
         const ctx = createRecruiterContext();
         const caller = applicationRouter.createCaller(ctx);
 
+        // Use valid UUID so DB query runs; no row = NOT_FOUND (invalid UUID would throw INTERNAL_SERVER_ERROR)
+        const nonExistentAppId = "00000000-0000-0000-0000-000000000001";
         await expect(
           caller.updateStatus({
-            id: "non-existent-app-id",
+            id: nonExistentAppId,
             status: "reviewing",
           })
         ).rejects.toThrow(TRPCError);
 
         await expect(
           caller.updateStatus({
-            id: "non-existent-app-id",
+            id: nonExistentAppId,
             status: "reviewing",
           })
         ).rejects.toMatchObject({
@@ -2058,15 +2063,17 @@ describe("applicationRouter", () => {
         const ctx = createCandidateContext();
         const caller = applicationRouter.createCaller(ctx);
 
+        // Use valid UUID so DB query runs; no row = NOT_FOUND (invalid UUID would throw INTERNAL_SERVER_ERROR)
+        const nonExistentAppId = "00000000-0000-0000-0000-000000000001";
         await expect(
           caller.withdraw({
-            id: "non-existent-app-id",
+            id: nonExistentAppId,
           })
         ).rejects.toThrow(TRPCError);
 
         await expect(
           caller.withdraw({
-            id: "non-existent-app-id",
+            id: nonExistentAppId,
           })
         ).rejects.toMatchObject({
           code: "NOT_FOUND",

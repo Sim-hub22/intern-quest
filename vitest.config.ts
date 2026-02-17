@@ -12,6 +12,11 @@ export default defineConfig({
   test: {
     globals: true,
     environment: "node",
+    pool: "forks",
+    fileParallelism: false, // Run test files sequentially to avoid DB conflicts
+    testTimeout: 30000, // 30 second timeout per test
+    hookTimeout: 30000, // 30 second timeout for hooks
+    teardownTimeout: 30000, // 30 second timeout for teardown
     env: {
       // Use TEST_DATABASE_URL from .env.test if available, otherwise use mock
       DATABASE_URL:

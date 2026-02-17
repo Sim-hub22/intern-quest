@@ -236,12 +236,13 @@ describe("quizRouter", () => {
       it("should throw NOT_FOUND if opportunity does not exist", async () => {
         const ctx = createRecruiterContext();
         const caller = quizRouter.createCaller(ctx);
-
+        // Use valid UUID so DB query runs; no row = NOT_FOUND (invalid UUID would throw INTERNAL_SERVER_ERROR)
+        const nonExistentOpportunityId = "00000000-0000-0000-0000-000000000002";
         await expect(
-          caller.create({ ...validQuizData, opportunityId: "non-existent" })
+          caller.create({ ...validQuizData, opportunityId: nonExistentOpportunityId })
         ).rejects.toThrow(TRPCError);
         await expect(
-          caller.create({ ...validQuizData, opportunityId: "non-existent" })
+          caller.create({ ...validQuizData, opportunityId: nonExistentOpportunityId })
         ).rejects.toMatchObject({
           code: "NOT_FOUND",
           message: "Opportunity not found",
@@ -522,12 +523,13 @@ describe("quizRouter", () => {
       it("should throw NOT_FOUND if quiz does not exist", async () => {
         const ctx = createRecruiterContext();
         const caller = quizRouter.createCaller(ctx);
-
+        // Use valid UUID so DB query runs; no row = NOT_FOUND (invalid UUID would throw INTERNAL_SERVER_ERROR)
+        const nonExistentQuizId = "00000000-0000-0000-0000-000000000003";
         await expect(
-          caller.update({ id: "non-existent-quiz", title: "Updated Title" })
+          caller.update({ id: nonExistentQuizId, title: "Updated Title" })
         ).rejects.toThrow(TRPCError);
         await expect(
-          caller.update({ id: "non-existent-quiz", title: "Updated Title" })
+          caller.update({ id: nonExistentQuizId, title: "Updated Title" })
         ).rejects.toMatchObject({
           code: "NOT_FOUND",
           message: "Quiz not found",
@@ -889,12 +891,13 @@ describe("quizRouter", () => {
       it("should throw NOT_FOUND if quiz does not exist", async () => {
         const ctx = createCandidateContext();
         const caller = quizRouter.createCaller(ctx);
-
+        // Use valid UUID so DB query runs; no row = NOT_FOUND (invalid UUID would throw INTERNAL_SERVER_ERROR)
+        const nonExistentQuizId = "00000000-0000-0000-0000-000000000003";
         await expect(
-          caller.getForAttempt({ quizId: "non-existent-quiz" })
+          caller.getForAttempt({ quizId: nonExistentQuizId })
         ).rejects.toThrow(TRPCError);
         await expect(
-          caller.getForAttempt({ quizId: "non-existent-quiz" })
+          caller.getForAttempt({ quizId: nonExistentQuizId })
         ).rejects.toMatchObject({
           code: "NOT_FOUND",
           message: "Quiz not found",
@@ -1108,15 +1111,17 @@ describe("quizRouter", () => {
         const ctx = createCandidateContext();
         const caller = quizRouter.createCaller(ctx);
 
+        // Use valid UUID so DB query runs; no row = NOT_FOUND (invalid UUID would throw INTERNAL_SERVER_ERROR)
+        const nonExistentAttemptId = "00000000-0000-0000-0000-000000000004";
         await expect(
           caller.submitAttempt({
-            attemptId: "non-existent",
+            attemptId: nonExistentAttemptId,
             answers: [],
           })
         ).rejects.toThrow(TRPCError);
         await expect(
           caller.submitAttempt({
-            attemptId: "non-existent",
+            attemptId: nonExistentAttemptId,
             answers: [],
           })
         ).rejects.toMatchObject({
@@ -1425,12 +1430,13 @@ describe("quizRouter", () => {
       it("should throw NOT_FOUND if attempt does not exist", async () => {
         const ctx = createCandidateContext();
         const caller = quizRouter.createCaller(ctx);
-
+        // Use valid UUID so DB query runs; no row = NOT_FOUND (invalid UUID would throw INTERNAL_SERVER_ERROR)
+        const nonExistentAttemptId = "00000000-0000-0000-0000-000000000005";
         await expect(
-          caller.getAttemptResult({ attemptId: "00000000-0000-0000-0000-000000attem1" })
+          caller.getAttemptResult({ attemptId: nonExistentAttemptId })
         ).rejects.toThrow(TRPCError);
         await expect(
-          caller.getAttemptResult({ attemptId: "00000000-0000-0000-0000-000000attem1" })
+          caller.getAttemptResult({ attemptId: nonExistentAttemptId })
         ).rejects.toMatchObject({
           code: "NOT_FOUND",
           message: "Attempt not found",
@@ -1746,12 +1752,13 @@ describe("quizRouter", () => {
       it("should throw NOT_FOUND if quiz does not exist", async () => {
         const ctx = createRecruiterContext();
         const caller = quizRouter.createCaller(ctx);
-
+        // Use valid UUID so DB query runs; no row = NOT_FOUND (invalid UUID would throw INTERNAL_SERVER_ERROR)
+        const nonExistentQuizId = "00000000-0000-0000-0000-000000000006";
         await expect(
-          caller.listAttempts({ quizId: "00000000-0000-0000-0000-00000000q123" })
+          caller.listAttempts({ quizId: nonExistentQuizId })
         ).rejects.toThrow(TRPCError);
         await expect(
-          caller.listAttempts({ quizId: "00000000-0000-0000-0000-00000000q123" })
+          caller.listAttempts({ quizId: nonExistentQuizId })
         ).rejects.toMatchObject({
           code: "NOT_FOUND",
           message: "Quiz not found",
