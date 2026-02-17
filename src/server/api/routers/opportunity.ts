@@ -12,21 +12,13 @@ import {
 
 import { publicProcedure, protectedProcedure, recruiterProcedure, router } from "../index";
 
-// Helper function to generate unique opportunity ID
-function generateOpportunityId(): string {
-  return `opp-${Date.now()}-${Math.random().toString(36).slice(2, 11)}`;
-}
-
 export const opportunityRouter = router({
   create: recruiterProcedure
     .input(createOpportunitySchema)
     .mutation(async ({ ctx, input }) => {
-      const opportunityId = generateOpportunityId();
-
       const [createdOpportunity] = await db
         .insert(opportunity)
         .values({
-          id: opportunityId,
           title: input.title,
           description: input.description,
           type: input.type,

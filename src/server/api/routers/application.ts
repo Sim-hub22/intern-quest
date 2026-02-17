@@ -1,6 +1,5 @@
 import { TRPCError } from "@trpc/server";
-import { and, desc, eq, sql, count } from "drizzle-orm";
-import { z } from "zod";
+import { and, count, desc, eq, sql } from "drizzle-orm";
 
 import { db } from "@/server/db";
 import { application } from "@/server/db/schema/application";
@@ -14,12 +13,12 @@ import {
   withdrawApplicationSchema,
 } from "@/validations/application-schema";
 
-import { candidateProcedure, recruiterProcedure, protectedProcedure, router } from "../index";
-
-// Helper function to generate unique application ID
-function generateApplicationId(): string {
-  return `app-${Date.now()}-${Math.random().toString(36).slice(2, 11)}`;
-}
+import {
+  candidateProcedure,
+  protectedProcedure,
+  recruiterProcedure,
+  router,
+} from "../index";
 
 export const applicationRouter = router({
   create: candidateProcedure
@@ -55,8 +54,8 @@ export const applicationRouter = router({
         .where(
           and(
             eq(application.opportunityId, opportunityId),
-            eq(application.candidateId, ctx.session.user.id)
-          )
+            eq(application.candidateId, ctx.session.user.id),
+          ),
         );
 
       if (existing) {
@@ -67,12 +66,9 @@ export const applicationRouter = router({
       }
 
       // 4. Create application
-      const applicationId = generateApplicationId();
-
       const [created] = await db
         .insert(application)
         .values({
-          id: applicationId,
           opportunityId,
           candidateId: ctx.session.user.id,
           coverLetter: coverLetter ?? null,

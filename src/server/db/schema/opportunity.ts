@@ -1,11 +1,11 @@
-import { index, integer, pgTable, text, timestamp } from "drizzle-orm/pg-core";
+import { index, integer, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
 
 import { user } from "./auth";
 
 export const opportunity = pgTable(
   "opportunity",
   {
-    id: text("id").primaryKey(),
+    id: uuid("id").defaultRandom().primaryKey(),
     title: text("title").notNull(),
     description: text("description").notNull(),
     type: text("type", {

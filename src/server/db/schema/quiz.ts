@@ -8,6 +8,7 @@ import {
   text,
   timestamp,
   unique,
+  uuid,
 } from "drizzle-orm/pg-core";
 
 import { user } from "./auth";
@@ -16,8 +17,8 @@ import { opportunity } from "./opportunity";
 export const quiz = pgTable(
   "quiz",
   {
-    id: text("id").primaryKey(),
-    opportunityId: text("opportunity_id")
+    id: uuid("id").defaultRandom().primaryKey(),
+    opportunityId: uuid("opportunity_id")
       .notNull()
       .references(() => opportunity.id, { onDelete: "cascade" }),
     title: text("title").notNull(),
@@ -37,8 +38,8 @@ export const quiz = pgTable(
 export const quizQuestion = pgTable(
   "quiz_question",
   {
-    id: text("id").primaryKey(),
-    quizId: text("quiz_id")
+    id: uuid("id").defaultRandom().primaryKey(),
+    quizId: uuid("quiz_id")
       .notNull()
       .references(() => quiz.id, { onDelete: "cascade" }),
     questionText: text("question_text").notNull(),
@@ -54,8 +55,8 @@ export const quizQuestion = pgTable(
 export const quizAttempt = pgTable(
   "quiz_attempt",
   {
-    id: text("id").primaryKey(),
-    quizId: text("quiz_id")
+    id: uuid("id").defaultRandom().primaryKey(),
+    quizId: uuid("quiz_id")
       .notNull()
       .references(() => quiz.id, { onDelete: "cascade" }),
     candidateId: text("candidate_id")
@@ -77,11 +78,11 @@ export const quizAttempt = pgTable(
 export const quizAnswer = pgTable(
   "quiz_answer",
   {
-    id: text("id").primaryKey(),
-    attemptId: text("attempt_id")
+    id: uuid("id").defaultRandom().primaryKey(),
+    attemptId: uuid("attempt_id")
       .notNull()
       .references(() => quizAttempt.id, { onDelete: "cascade" }),
-    questionId: text("question_id")
+    questionId: uuid("question_id")
       .notNull()
       .references(() => quizQuestion.id, { onDelete: "cascade" }),
     selectedAnswer: text("selected_answer"),

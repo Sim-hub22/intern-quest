@@ -1,5 +1,5 @@
 import { relations } from "drizzle-orm";
-import { index, pgTable, text, timestamp, unique } from "drizzle-orm/pg-core";
+import { index, pgTable, text, timestamp, unique, uuid } from "drizzle-orm/pg-core";
 
 import { user } from "./auth";
 import { opportunity } from "./opportunity";
@@ -7,8 +7,8 @@ import { opportunity } from "./opportunity";
 export const application = pgTable(
   "application",
   {
-    id: text("id").primaryKey(),
-    opportunityId: text("opportunity_id")
+    id: uuid("id").defaultRandom().primaryKey(),
+    opportunityId: uuid("opportunity_id")
       .notNull()
       .references(() => opportunity.id, { onDelete: "cascade" }),
     candidateId: text("candidate_id")

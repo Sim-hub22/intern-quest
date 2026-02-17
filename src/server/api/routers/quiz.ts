@@ -16,23 +16,6 @@ import {
 } from "@/validations/quiz-schema";
 import { recruiterProcedure, protectedProcedure, candidateProcedure, router } from "../index";
 
-// Helper functions to generate unique IDs
-function generateQuizId(): string {
-  return `quiz-${Date.now()}-${Math.random().toString(36).slice(2, 11)}`;
-}
-
-function generateQuestionId(): string {
-  return `ques-${Date.now()}-${Math.random().toString(36).slice(2, 11)}`;
-}
-
-function generateAttemptId(): string {
-  return `attempt-${Date.now()}-${Math.random().toString(36).slice(2, 11)}`;
-}
-
-function generateAnswerId(): string {
-  return `answer-${Date.now()}-${Math.random().toString(36).slice(2, 11)}`;
-}
-
 export const quizRouter = router({
   create: recruiterProcedure
     .input(createQuizSchema)
@@ -71,11 +54,9 @@ export const quizRouter = router({
       }
 
       // 3. Create quiz
-      const quizId = generateQuizId();
       const [createdQuiz] = await db
         .insert(quiz)
         .values({
-          id: quizId,
           opportunityId: input.opportunityId,
           title: input.title,
           description: input.description || null,
@@ -88,8 +69,7 @@ export const quizRouter = router({
       // 4. Create questions with order
       await db.insert(quizQuestion).values(
         input.questions.map((q, index) => ({
-          id: generateQuestionId(),
-          quizId: quizId,
+          quizId: createdQuiz!.id,
           questionText: q.questionText,
           options: q.options,
           correctAnswer: q.correctAnswer,
@@ -236,7 +216,6 @@ export const quizRouter = router({
         const [newAttempt] = await db
           .insert(quizAttempt)
           .values({
-            id: generateAttemptId(),
             quizId: input.quizId,
             candidateId: ctx.session.user.id,
             score: null,
@@ -338,7 +317,6 @@ export const quizRouter = router({
         }
 
         return {
-          id: generateAnswerId(),
           attemptId: input.attemptId,
           questionId: answer.questionId,
           selectedAnswer: answer.selectedAnswer,
