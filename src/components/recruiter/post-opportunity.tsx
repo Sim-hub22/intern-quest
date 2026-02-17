@@ -1,5 +1,6 @@
 "use client";
 
+import { trpcClient } from "@/lib/trpc";
 import {
   Briefcase,
   Calendar,
@@ -11,19 +12,22 @@ import {
   Tag,
   Upload,
 } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { toast } from "sonner";
 
 interface PostOpportunityV2Props {
   onNavigateBack?: () => void;
 }
 
 export function PostOpportunityV2({ onNavigateBack }: PostOpportunityV2Props) {
+  const router = useRouter();
   const [currentStep, setCurrentStep] = useState(1);
   const [formData, setFormData] = useState({
     jobTitle: "",
     category: "",
     duration: "",
-    locationType: "on-site",
+    locationType: "onsite" as "onsite" | "remote" | "hybrid",
     location: "",
     description: "",
     requirements: "",
@@ -36,6 +40,44 @@ export function PostOpportunityV2({ onNavigateBack }: PostOpportunityV2Props) {
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  
+  const handleCreateOpportunity = async () => {
+    try {
+      setIsSubmitting(true);
+      
+      // Parse and validate form data
+      const skillsArray = formData.skills
+        .split(",")
+        .map(s => s.trim())
+        .filter(s => s.length > 0);
+      
+      const stipendValue = formData.salary ? parseFloat(formData.salary) : null;
+      const deadlineDate = formData.deadline ? new Date(formData.deadline) : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000); // Default 30 days from now
+      
+      await trpcClient.opportunity.create.mutate({
+        title: formData.jobTitle,
+        description: formData.description,
+        type: "internship" as const,
+        mode: formData.locationType,
+        location: formData.location || undefined,
+        category: formData.category,
+        skills: skillsArray,
+        stipend: stipendValue,
+        duration: formData.duration || undefined,
+        deadline: deadlineDate,
+        positions: parseInt(formData.positions) || 1,
+      });
+      
+      toast.success("Opportunity posted successfully!");
+      router.push("/recruiter/manage-opportunities");
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : "Failed to post opportunity";
+      toast.error(errorMessage);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   const steps = [
     { id: 1, title: "Basic Information", icon: Briefcase },
@@ -94,11 +136,10 @@ export function PostOpportunityV2({ onNavigateBack }: PostOpportunityV2Props) {
     setCurrentStep(currentStep - 1);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (validateStep(currentStep)) {
-      console.log("Opportunity posted:", formData);
-      // Handle form submission
+      await handleCreateOpportunity();
     }
   };
 
@@ -286,7 +327,7 @@ export function PostOpportunityV2({ onNavigateBack }: PostOpportunityV2Props) {
                       onChange={handleInputChange}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg outline-none focus:border-blue-600 transition-colors"
                     >
-                      <option value="on-site">On-site</option>
+                      <option value="onsite">On-site</option>
                       <option value="remote">Remote</option>
                       <option value="hybrid">Hybrid</option>
                     </select>
@@ -661,9 +702,10 @@ export function PostOpportunityV2({ onNavigateBack }: PostOpportunityV2Props) {
             ) : (
               <button
                 type="submit"
-                className="px-6 py-2.5 bg-gradient-to-r from-blue-600 to-cyan-600 text-white rounded-lg hover:from-blue-700 hover:to-cyan-700 transition-all"
+                disabled={isSubmitting}
+                className="px-6 py-2.5 bg-gradient-to-r from-blue-600 to-cyan-600 text-white rounded-lg hover:from-blue-700 hover:to-cyan-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                Post Opportunity
+                {isSubmitting ? "Posting..." : "Post Opportunity"}
               </button>
             )}
           </div>
