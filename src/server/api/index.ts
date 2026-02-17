@@ -23,3 +23,33 @@ export const protectedProcedure = t.procedure.use(({ ctx, next }) => {
     },
   });
 });
+
+export const recruiterProcedure = protectedProcedure.use(({ ctx, next }) => {
+  if (ctx.session.user.role !== "recruiter") {
+    throw new TRPCError({
+      code: "FORBIDDEN",
+      message: "Recruiter access required",
+    });
+  }
+  return next({ ctx });
+});
+
+export const candidateProcedure = protectedProcedure.use(({ ctx, next }) => {
+  if (ctx.session.user.role !== "candidate") {
+    throw new TRPCError({
+      code: "FORBIDDEN",
+      message: "Candidate access required",
+    });
+  }
+  return next({ ctx });
+});
+
+export const adminProcedure = protectedProcedure.use(({ ctx, next }) => {
+  if (ctx.session.user.role !== "admin") {
+    throw new TRPCError({
+      code: "FORBIDDEN",
+      message: "Admin access required",
+    });
+  }
+  return next({ ctx });
+});
