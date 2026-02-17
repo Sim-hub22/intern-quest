@@ -1,9 +1,10 @@
 import { TRPCError } from "@trpc/server";
 import { eq } from "drizzle-orm";
+import { z } from "zod";
 import { db } from "@/server/db";
 import { quiz, quizQuestion } from "@/server/db/schema/quiz";
 import { opportunity } from "@/server/db/schema/opportunity";
-import { createQuizSchema } from "@/validations/quiz-schema";
+import { createQuizSchema, updateQuizSchema } from "@/validations/quiz-schema";
 import { recruiterProcedure, router } from "../index";
 
 // Helper functions to generate unique IDs
@@ -81,5 +82,67 @@ export const quizRouter = router({
       );
 
       return createdQuiz!;
+    }),
+
+  update: recruiterProcedure
+    .input(
+      z.object({
+        id: z.string().check(z.minLength(1, "This field is required")),
+      }).and(updateQuizSchema)
+    )
+    .mutation(async ({ ctx, input }) => {
+      const { id, ...updateData } = input;
+
+      // 1. Get quiz and verify ownership
+      const [existingQuiz] = await db
+        .select({ id: quiz.id, opportunityId: quiz.opportunityId })
+        .from(quiz)
+        .where(eq(quiz.id, id));
+
+      if (!existingQuiz) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Quiz not found",
+        });
+      }
+
+      // 2. Verify opportunity ownership
+      const [opp] = await db
+        .select({ recruiterId: opportunity.recruiterId })
+        .from(opportunity)
+        .where(eq(opportunity.id, existingQuiz.opportunityId));
+
+      if (!opp || opp.recruiterId !== ctx.session.user.id) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "Not your quiz",
+        });
+      }
+
+      // 3. Update quiz
+      const updateFields: Record<string, unknown> = {};
+      
+      // Handle each field from updateData
+      if (updateData.title !== undefined) updateFields.title = updateData.title;
+      if (updateData.description !== undefined) {
+        updateFields.description = updateData.description || null;
+      }
+      if (updateData.durationMinutes !== undefined) {
+        updateFields.durationMinutes = updateData.durationMinutes;
+      }
+      if (updateData.passingScore !== undefined) {
+        updateFields.passingScore = updateData.passingScore;
+      }
+      if (updateData.isActive !== undefined) {
+        updateFields.isActive = updateData.isActive;
+      }
+
+      const [updatedQuiz] = await db
+        .update(quiz)
+        .set(updateFields)
+        .where(eq(quiz.id, id))
+        .returning();
+
+      return updatedQuiz!;
     }),
 });

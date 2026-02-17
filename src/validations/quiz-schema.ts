@@ -35,7 +35,10 @@ export const createQuizSchema = z.object({
 });
 
 export const updateQuizSchema = createQuizSchema
-  .omit({ opportunityId: true })
+  .omit({ opportunityId: true, questions: true })
+  .extend({
+    isActive: z.boolean().optional(),
+  })
   .partial();
 
 const quizAnswerSchema = z.object({

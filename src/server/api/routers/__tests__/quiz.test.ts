@@ -430,4 +430,283 @@ describe("quizRouter", () => {
       });
     });
   });
+
+  describe("update", () => {
+    describe("authorization", () => {
+      it("should throw UNAUTHORIZED if user is not authenticated", async () => {
+        const ctx = createUnauthenticatedContext();
+        const caller = quizRouter.createCaller(ctx);
+
+        await expect(
+          caller.update({ id: "quiz-123", title: "Updated Title" })
+        ).rejects.toThrow(TRPCError);
+        await expect(
+          caller.update({ id: "quiz-123", title: "Updated Title" })
+        ).rejects.toMatchObject({
+          code: "UNAUTHORIZED",
+        });
+      });
+
+      it("should throw FORBIDDEN if user is not a recruiter", async () => {
+        const ctx = createCandidateContext();
+        const caller = quizRouter.createCaller(ctx);
+
+        await expect(
+          caller.update({ id: "quiz-123", title: "Updated Title" })
+        ).rejects.toThrow(TRPCError);
+        await expect(
+          caller.update({ id: "quiz-123", title: "Updated Title" })
+        ).rejects.toMatchObject({
+          code: "FORBIDDEN",
+        });
+      });
+    });
+
+    describe("validation", () => {
+      it("should reject invalid quiz ID", async () => {
+        const ctx = createRecruiterContext();
+        const caller = quizRouter.createCaller(ctx);
+
+        await expect(
+          caller.update({ id: "", title: "Updated Title" })
+        ).rejects.toThrow();
+      });
+
+      it("should reject title shorter than 5 characters", async () => {
+        const ctx = createRecruiterContext();
+        const caller = quizRouter.createCaller(ctx);
+
+        const opp = await createTestOpportunity("recruiter-1");
+        const createdQuiz = await caller.create({
+          ...validQuizData,
+          opportunityId: opp.id,
+        });
+
+        await expect(
+          caller.update({ id: createdQuiz.id, title: "Quiz" })
+        ).rejects.toThrow();
+      });
+
+      it("should reject invalid durationMinutes", async () => {
+        const ctx = createRecruiterContext();
+        const caller = quizRouter.createCaller(ctx);
+
+        const opp = await createTestOpportunity("recruiter-1");
+        const createdQuiz = await caller.create({
+          ...validQuizData,
+          opportunityId: opp.id,
+        });
+
+        await expect(
+          caller.update({ id: createdQuiz.id, durationMinutes: 0 })
+        ).rejects.toThrow();
+      });
+
+      it("should reject passingScore outside 0-100 range", async () => {
+        const ctx = createRecruiterContext();
+        const caller = quizRouter.createCaller(ctx);
+
+        const opp = await createTestOpportunity("recruiter-1");
+        const createdQuiz = await caller.create({
+          ...validQuizData,
+          opportunityId: opp.id,
+        });
+
+        await expect(
+          caller.update({ id: createdQuiz.id, passingScore: 150 })
+        ).rejects.toThrow();
+      });
+    });
+
+    describe("business logic", () => {
+      it("should throw NOT_FOUND if quiz does not exist", async () => {
+        const ctx = createRecruiterContext();
+        const caller = quizRouter.createCaller(ctx);
+
+        await expect(
+          caller.update({ id: "non-existent-quiz", title: "Updated Title" })
+        ).rejects.toThrow(TRPCError);
+        await expect(
+          caller.update({ id: "non-existent-quiz", title: "Updated Title" })
+        ).rejects.toMatchObject({
+          code: "NOT_FOUND",
+          message: "Quiz not found",
+        });
+      });
+
+      it("should throw FORBIDDEN if trying to update another recruiter's quiz", async () => {
+        // Create quiz with recruiter-2
+        const recruiter2Ctx = createRecruiterContext("recruiter-2");
+        const recruiter2Caller = quizRouter.createCaller(recruiter2Ctx);
+        const opp = await createTestOpportunity("recruiter-2");
+        const createdQuiz = await recruiter2Caller.create({
+          ...validQuizData,
+          opportunityId: opp.id,
+        });
+
+        // Try to update with recruiter-1
+        const recruiter1Ctx = createRecruiterContext("recruiter-1");
+        const recruiter1Caller = quizRouter.createCaller(recruiter1Ctx);
+
+        await expect(
+          recruiter1Caller.update({
+            id: createdQuiz.id,
+            title: "Hacked Title",
+          })
+        ).rejects.toThrow(TRPCError);
+        await expect(
+          recruiter1Caller.update({
+            id: createdQuiz.id,
+            title: "Hacked Title",
+          })
+        ).rejects.toMatchObject({
+          code: "FORBIDDEN",
+          message: "Not your quiz",
+        });
+      });
+    });
+
+    describe("success cases", () => {
+      it("should update quiz title", async () => {
+        const ctx = createRecruiterContext();
+        const caller = quizRouter.createCaller(ctx);
+
+        const opp = await createTestOpportunity("recruiter-1");
+        const createdQuiz = await caller.create({
+          ...validQuizData,
+          opportunityId: opp.id,
+        });
+
+        const updatedQuiz = await caller.update({
+          id: createdQuiz.id,
+          title: "Updated JavaScript Quiz",
+        });
+
+        expect(updatedQuiz.title).toBe("Updated JavaScript Quiz");
+        expect(updatedQuiz.id).toBe(createdQuiz.id);
+      });
+
+      it("should update quiz description", async () => {
+        const ctx = createRecruiterContext();
+        const caller = quizRouter.createCaller(ctx);
+
+        const opp = await createTestOpportunity("recruiter-1");
+        const createdQuiz = await caller.create({
+          ...validQuizData,
+          opportunityId: opp.id,
+        });
+
+        const updatedQuiz = await caller.update({
+          id: createdQuiz.id,
+          description: "Updated description for the quiz",
+        });
+
+        expect(updatedQuiz.description).toBe("Updated description for the quiz");
+      });
+
+      it("should update durationMinutes", async () => {
+        const ctx = createRecruiterContext();
+        const caller = quizRouter.createCaller(ctx);
+
+        const opp = await createTestOpportunity("recruiter-1");
+        const createdQuiz = await caller.create({
+          ...validQuizData,
+          opportunityId: opp.id,
+        });
+
+        const updatedQuiz = await caller.update({
+          id: createdQuiz.id,
+          durationMinutes: 45,
+        });
+
+        expect(updatedQuiz.durationMinutes).toBe(45);
+      });
+
+      it("should update passingScore", async () => {
+        const ctx = createRecruiterContext();
+        const caller = quizRouter.createCaller(ctx);
+
+        const opp = await createTestOpportunity("recruiter-1");
+        const createdQuiz = await caller.create({
+          ...validQuizData,
+          opportunityId: opp.id,
+        });
+
+        const updatedQuiz = await caller.update({
+          id: createdQuiz.id,
+          passingScore: 80,
+        });
+
+        expect(updatedQuiz.passingScore).toBe(80);
+      });
+
+      it("should update isActive", async () => {
+        const ctx = createRecruiterContext();
+        const caller = quizRouter.createCaller(ctx);
+
+        const opp = await createTestOpportunity("recruiter-1");
+        const createdQuiz = await caller.create({
+          ...validQuizData,
+          opportunityId: opp.id,
+        });
+
+        const updatedQuiz = await caller.update({
+          id: createdQuiz.id,
+          isActive: false,
+        });
+
+        expect(updatedQuiz.isActive).toBe(false);
+      });
+
+      it("should update multiple fields at once", async () => {
+        const ctx = createRecruiterContext();
+        const caller = quizRouter.createCaller(ctx);
+
+        const opp = await createTestOpportunity("recruiter-1");
+        const createdQuiz = await caller.create({
+          ...validQuizData,
+          opportunityId: opp.id,
+        });
+
+        const updatedQuiz = await caller.update({
+          id: createdQuiz.id,
+          title: "Completely New Quiz Title",
+          description: "Brand new description",
+          durationMinutes: 60,
+          passingScore: 85,
+          isActive: false,
+        });
+
+        expect(updatedQuiz.title).toBe("Completely New Quiz Title");
+        expect(updatedQuiz.description).toBe("Brand new description");
+        expect(updatedQuiz.durationMinutes).toBe(60);
+        expect(updatedQuiz.passingScore).toBe(85);
+        expect(updatedQuiz.isActive).toBe(false);
+      });
+
+      it("should persist updates to database", async () => {
+        const ctx = createRecruiterContext();
+        const caller = quizRouter.createCaller(ctx);
+
+        const opp = await createTestOpportunity("recruiter-1");
+        const createdQuiz = await caller.create({
+          ...validQuizData,
+          opportunityId: opp.id,
+        });
+
+        await caller.update({
+          id: createdQuiz.id,
+          title: "Persisted Title",
+        });
+
+        // Verify from database
+        const [dbQuiz] = await db
+          .select()
+          .from(quiz)
+          .where(eq(quiz.id, createdQuiz.id));
+
+        expect(dbQuiz!.title).toBe("Persisted Title");
+      });
+    });
+  });
 });
