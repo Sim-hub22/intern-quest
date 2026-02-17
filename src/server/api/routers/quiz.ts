@@ -10,6 +10,7 @@ import {
   getQuizByOpportunitySchema,
   startQuizAttemptSchema,
   submitQuizAttemptSchema,
+  getAttemptResultSchema,
 } from "@/validations/quiz-schema";
 import { recruiterProcedure, protectedProcedure, candidateProcedure, router } from "../index";
 
@@ -365,5 +366,70 @@ export const quizRouter = router({
       }
 
       return updatedAttempt!;
+    }),
+
+  getAttemptResult: protectedProcedure
+    .input(getAttemptResultSchema)
+    .query(async ({ ctx, input }) => {
+      // 1. Find the attempt
+      const [attempt] = await db
+        .select()
+        .from(quizAttempt)
+        .where(eq(quizAttempt.id, input.attemptId));
+
+      if (!attempt) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Attempt not found",
+        });
+      }
+
+      // 2. Verify permission to view
+      // Candidates can only view their own attempts
+      // Recruiters can view attempts for quizzes they own
+      const isCandidate = ctx.session.user.role === "candidate";
+      const isRecruiter = ctx.session.user.role === "recruiter";
+
+      if (isCandidate && attempt.candidateId !== ctx.session.user.id) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "You do not have permission to view this attempt",
+        });
+      }
+
+      if (isRecruiter) {
+        // Check if recruiter owns the quiz
+        const [quizRecord] = await db
+          .select({ recruiterId: opportunity.recruiterId })
+          .from(quiz)
+          .innerJoin(opportunity, eq(quiz.opportunityId, opportunity.id))
+          .where(eq(quiz.id, attempt.quizId));
+
+        if (!quizRecord || quizRecord.recruiterId !== ctx.session.user.id) {
+          throw new TRPCError({
+            code: "FORBIDDEN",
+            message: "You do not have permission to view this attempt",
+          });
+        }
+      }
+
+      // 3. Get all answers for this attempt
+      const answers = await db
+        .select()
+        .from(quizAnswer)
+        .where(eq(quizAnswer.attemptId, input.attemptId));
+
+      // 4. Get all questions for this quiz
+      const questions = await db
+        .select()
+        .from(quizQuestion)
+        .where(eq(quizQuestion.quizId, attempt.quizId))
+        .orderBy(asc(quizQuestion.order));
+
+      return {
+        attempt,
+        answers,
+        questions,
+      };
     }),
 });
