@@ -1,5 +1,6 @@
 "use client";
 
+import { trpcClient } from "@/lib/trpc";
 import {
   Calendar,
   Clock,
@@ -10,12 +11,27 @@ import {
   Trash2,
   Users,
 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
 
 interface ManageOpportunitiesV2Props {
   onNavigateBack?: () => void;
-  onNavigateToApplicants?: (opportunityId: number) => void;
+  onNavigateToApplicants?: (opportunityId: string) => void;
 }
+
+type Opportunity = {
+  id: string;
+  title: string;
+  category: string;
+  location: string | null;
+  mode: "onsite" | "remote" | "hybrid";
+  type: "internship" | "fellowship" | "volunteer";
+  duration: string | null;
+  deadline: string;
+  createdAt: string;
+  status: "draft" | "published" | "closed" | "archived";
+  _count?: { applications: number };
+};
 
 export function ManageOpportunitiesV2({
   onNavigateBack,
@@ -25,69 +41,28 @@ export function ManageOpportunitiesV2({
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
   const [dateFilter, setDateFilter] = useState("all");
+  const [opportunities, setOpportunities] = useState<Opportunity[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const opportunities = [
-    {
-      id: 1,
-      title: "Software Engineering Intern",
-      category: "Software Engineering",
-      location: "San Francisco, CA",
-      type: "On-site",
-      duration: "3 months",
-      applications: 45,
-      deadline: "Dec 15, 2025",
-      postedDate: "Nov 20, 2025",
-      status: "Open",
-    },
-    {
-      id: 2,
-      title: "UI/UX Design Intern",
-      category: "Design",
-      location: "Remote",
-      type: "Remote",
-      duration: "4 months",
-      applications: 62,
-      deadline: "Dec 20, 2025",
-      postedDate: "Nov 22, 2025",
-      status: "Open",
-    },
-    {
-      id: 3,
-      title: "Data Science Intern",
-      category: "Data Science",
-      location: "New York, NY",
-      type: "Hybrid",
-      duration: "6 months",
-      applications: 38,
-      deadline: "Dec 25, 2025",
-      postedDate: "Nov 25, 2025",
-      status: "Open",
-    },
-    {
-      id: 4,
-      title: "Marketing Intern",
-      category: "Marketing",
-      location: "Austin, TX",
-      type: "On-site",
-      duration: "3 months",
-      applications: 28,
-      deadline: "Dec 5, 2025",
-      postedDate: "Oct 15, 2025",
-      status: "Deadline Passed",
-    },
-    {
-      id: 5,
-      title: "Frontend Developer Intern",
-      category: "Software Engineering",
-      location: "Seattle, WA",
-      type: "Remote",
-      duration: "5 months",
-      applications: 51,
-      deadline: "Nov 30, 2025",
-      postedDate: "Oct 20, 2025",
-      status: "Closed",
-    },
-  ];
+  // Fetch opportunities on mount
+  useEffect(() => {
+    fetchOpportunities();
+  }, []);
+
+  const fetchOpportunities = async () => {
+    try {
+      setIsLoading(true);
+      const result = await trpcClient.opportunity.list.query({
+        limit: 100, // Get all for now, we'll implement pagination later
+      });
+      setOpportunities(result.opportunities);
+    } catch (error) {
+      toast.error("Failed to load opportunities");
+      console.error(error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const filteredOpportunities = opportunities.filter((opportunity) => {
     const matchesSearch =
@@ -100,41 +75,66 @@ export function ManageOpportunitiesV2({
     return matchesSearch && matchesCategory && matchesStatus;
   });
 
-  const handleEdit = (id: number) => {
+  const handleEdit = (id: string) => {
     console.log("Edit opportunity:", id);
-    // Handle edit
+    // TODO: Navigate to edit page or open modal
   };
 
-  const handleClose = (id: number) => {
+  const handleClose = async (id: string) => {
     if (window.confirm("Are you sure you want to close this opportunity?")) {
-      console.log("Close opportunity:", id);
-      // Handle close
+      try {
+        await trpcClient.opportunity.updateStatus.mutate({
+          id,
+          status: "closed",
+        });
+        toast.success("Opportunity closed successfully");
+        fetchOpportunities(); // Refresh the list
+      } catch (error) {
+        toast.error("Failed to close opportunity");
+        console.error(error);
+      }
     }
   };
 
-  const handleDelete = (id: number) => {
+  const handleDelete = async (id: string) => {
     if (
       window.confirm(
         "Are you sure you want to delete this opportunity? This action cannot be undone.",
       )
     ) {
-      console.log("Delete opportunity:", id);
-      // Handle delete
+      try {
+        await trpcClient.opportunity.delete.mutate({ id });
+        toast.success("Opportunity deleted successfully");
+        fetchOpportunities(); // Refresh the list
+      } catch (error) {
+        toast.error("Failed to delete opportunity");
+        console.error(error);
+      }
     }
   };
 
-  const getStatusColor = (status: string) => {
+  const getStatusColor = (status: "draft" | "published" | "closed" | "archived") => {
     switch (status) {
-      case "Open":
+      case "published":
         return "bg-green-100 text-green-700";
-      case "Closed":
+      case "draft":
+        return "bg-yellow-100 text-yellow-700";
+      case "closed":
         return "bg-gray-100 text-gray-700";
-      case "Deadline Passed":
+      case "archived":
         return "bg-red-100 text-red-700";
       default:
         return "bg-gray-100 text-gray-700";
     }
   };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-gray-600">Loading opportunities...</div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -186,9 +186,10 @@ export function ManageOpportunitiesV2({
               className="px-4 py-2 border border-gray-300 rounded-lg outline-none focus:border-blue-600 transition-colors"
             >
               <option value="all">All Status</option>
-              <option value="Open">Open</option>
-              <option value="Closed">Closed</option>
-              <option value="Deadline Passed">Deadline Passed</option>
+              <option value="draft">Draft</option>
+              <option value="published">Published</option>
+              <option value="closed">Closed</option>
+              <option value="archived">Archived</option>
             </select>
 
             <select
@@ -211,24 +212,21 @@ export function ManageOpportunitiesV2({
             <p className="text-gray-900">{opportunities.length}</p>
           </div>
           <div className="bg-green-50 p-4 rounded-lg border border-green-200">
-            <p className="text-green-600 text-sm mb-1">Open</p>
+            <p className="text-green-600 text-sm mb-1">Published</p>
             <p className="text-green-900">
-              {opportunities.filter((o) => o.status === "Open").length}
+              {opportunities.filter((o) => o.status === "published").length}
             </p>
           </div>
           <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
-            <p className="text-gray-600 text-sm mb-1">Closed</p>
+            <p className="text-gray-600 text-sm mb-1">Draft</p>
             <p className="text-gray-900">
-              {opportunities.filter((o) => o.status === "Closed").length}
+              {opportunities.filter((o) => o.status === "draft").length}
             </p>
           </div>
           <div className="bg-red-50 p-4 rounded-lg border border-red-200">
-            <p className="text-red-600 text-sm mb-1">Deadline Passed</p>
+            <p className="text-red-600 text-sm mb-1">Closed</p>
             <p className="text-red-900">
-              {
-                opportunities.filter((o) => o.status === "Deadline Passed")
-                  .length
-              }
+              {opportunities.filter((o) => o.status === "closed").length}
             </p>
           </div>
         </div>
@@ -269,7 +267,7 @@ export function ManageOpportunitiesV2({
                     className="hover:bg-gray-50 transition-colors"
                   >
                     <td className="px-6 py-4">
-                      <div>
+                        <div>
                         <button
                           onClick={() =>
                             onNavigateToApplicants?.(opportunity.id)
@@ -281,10 +279,10 @@ export function ManageOpportunitiesV2({
                         <div className="flex items-center gap-2 mt-1">
                           <span className="text-gray-500 text-xs flex items-center gap-1">
                             <Clock className="w-3 h-3" />
-                            {opportunity.duration}
+                            {opportunity.duration || "Not specified"}
                           </span>
-                          <span className="px-2 py-0.5 bg-blue-50 text-blue-700 rounded text-xs">
-                            {opportunity.type}
+                          <span className="px-2 py-0.5 bg-blue-50 text-blue-700 rounded text-xs capitalize">
+                            {opportunity.mode}
                           </span>
                         </div>
                       </div>
@@ -295,19 +293,19 @@ export function ManageOpportunitiesV2({
                     <td className="px-6 py-4">
                       <span className="text-gray-600 text-sm flex items-center gap-1">
                         <MapPin className="w-4 h-4" />
-                        {opportunity.location}
+                        {opportunity.location || "Not specified"}
                       </span>
                     </td>
                     <td className="px-6 py-4">
                       <span className="text-gray-900 flex items-center gap-1">
                         <Users className="w-4 h-4" />
-                        {opportunity.applications}
+                        {opportunity._count?.applications || 0}
                       </span>
                     </td>
                     <td className="px-6 py-4">
                       <span className="text-gray-600 text-sm flex items-center gap-1">
                         <Calendar className="w-4 h-4" />
-                        {opportunity.deadline}
+                        {new Date(opportunity.deadline).toLocaleDateString()}
                       </span>
                     </td>
                     <td className="px-6 py-4">
