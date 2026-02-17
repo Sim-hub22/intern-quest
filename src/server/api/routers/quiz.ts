@@ -2,13 +2,14 @@ import { TRPCError } from "@trpc/server";
 import { eq, asc, and } from "drizzle-orm";
 import { z } from "zod";
 import { db } from "@/server/db";
-import { quiz, quizQuestion, quizAttempt } from "@/server/db/schema/quiz";
+import { quiz, quizQuestion, quizAttempt, quizAnswer } from "@/server/db/schema/quiz";
 import { opportunity } from "@/server/db/schema/opportunity";
 import { 
   createQuizSchema, 
   updateQuizSchema,
   getQuizByOpportunitySchema,
   startQuizAttemptSchema,
+  submitQuizAttemptSchema,
 } from "@/validations/quiz-schema";
 import { recruiterProcedure, protectedProcedure, candidateProcedure, router } from "../index";
 
@@ -23,6 +24,10 @@ function generateQuestionId(): string {
 
 function generateAttemptId(): string {
   return `attempt-${Date.now()}-${Math.random().toString(36).slice(2, 11)}`;
+}
+
+function generateAnswerId(): string {
+  return `answer-${Date.now()}-${Math.random().toString(36).slice(2, 11)}`;
 }
 
 export const quizRouter = router({
@@ -261,5 +266,104 @@ export const quizRouter = router({
         },
         attempt,
       };
+    }),
+
+  submitAttempt: candidateProcedure
+    .input(submitQuizAttemptSchema)
+    .mutation(async ({ ctx, input }) => {
+      // 1. Get attempt and verify ownership
+      const [attempt] = await db
+        .select()
+        .from(quizAttempt)
+        .where(eq(quizAttempt.id, input.attemptId));
+
+      if (!attempt) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Quiz attempt not found",
+        });
+      }
+
+      if (attempt.candidateId !== ctx.session.user.id) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "Not your attempt",
+        });
+      }
+
+      // 2. Check if already submitted
+      if (attempt.submittedAt) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Quiz already submitted",
+        });
+      }
+
+      // 3. Get quiz to access passing score
+      const [quizRecord] = await db
+        .select()
+        .from(quiz)
+        .where(eq(quiz.id, attempt.quizId));
+
+      if (!quizRecord) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Quiz not found",
+        });
+      }
+
+      // 4. Get all questions with correct answers
+      const questions = await db
+        .select()
+        .from(quizQuestion)
+        .where(eq(quizQuestion.quizId, attempt.quizId));
+
+      // 5. Grade answers
+      let totalPoints = 0;
+      let earnedPoints = 0;
+
+      const answerRecords = input.answers.map((answer) => {
+        const question = questions.find((q) => q.id === answer.questionId);
+        if (!question) {
+          return null;
+        }
+
+        totalPoints += question.points;
+        const isCorrect = answer.selectedAnswer === question.correctAnswer;
+        if (isCorrect) {
+          earnedPoints += question.points;
+        }
+
+        return {
+          id: generateAnswerId(),
+          attemptId: input.attemptId,
+          questionId: answer.questionId,
+          selectedAnswer: answer.selectedAnswer,
+          isCorrect,
+        };
+      });
+
+      // 6. Calculate score percentage
+      const score = totalPoints > 0 ? Math.round((earnedPoints / totalPoints) * 100) : 0;
+      const passed = score >= quizRecord.passingScore;
+
+      // 7. Update attempt with results
+      const [updatedAttempt] = await db
+        .update(quizAttempt)
+        .set({
+          score,
+          passed,
+          submittedAt: new Date(),
+        })
+        .where(eq(quizAttempt.id, input.attemptId))
+        .returning();
+
+      // 8. Save answer records
+      const validAnswers = answerRecords.filter((a) => a !== null);
+      if (validAnswers.length > 0) {
+        await db.insert(quizAnswer).values(validAnswers);
+      }
+
+      return updatedAttempt!;
     }),
 });
