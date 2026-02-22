@@ -2,6 +2,7 @@ import Providers from "@/components/providers";
 import "@/styles/globals.css";
 import type { Metadata } from "next";
 import { Geist, Geist_Mono, Inter } from "next/font/google";
+import { Suspense } from "react";
 
 const inter = Inter({subsets:['latin'],variable:'--font-sans'});
 
@@ -33,7 +34,9 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <Providers>{children}</Providers>
+        <Suspense fallback={<div className="min-h-screen" />}>
+          <Providers>{children}</Providers>
+        </Suspense>
       </body>
     </html>
   );

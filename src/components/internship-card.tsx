@@ -106,6 +106,7 @@ export function InternshipCard({
       <ApplicationModal
         isOpen={isApplicationModalOpen}
         onClose={() => setIsApplicationModalOpen(false)}
+        opportunityId={internship.id}
         internshipTitle={internship.title}
         companyName={internship.company}
       />

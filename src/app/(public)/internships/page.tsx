@@ -2,7 +2,6 @@
 
 import { ApplicationModal } from "@/components/application-model";
 import { Internship } from "@/components/internship-card";
-import { InternshipDetail } from "@/components/internship-detail";
 import { Button } from "@/components/ui/button";
 import {
   Bookmark,
@@ -15,6 +14,7 @@ import {
   SlidersHorizontal,
   X,
 } from "lucide-react";
+import Link from "next/link";
 import { useState } from "react";
 
 export default function InternshipsPage() {
@@ -24,9 +24,6 @@ export default function InternshipsPage() {
   const [selectedEmploymentTypes, setSelectedEmploymentTypes] = useState<
     string[]
   >([]);
-  const [selectedInternshipId, setSelectedInternshipId] = useState<
-    string | null
-  >(null);
   const [isApplicationModalOpen, setIsApplicationModalOpen] = useState(false);
   const [applyingInternship, setApplyingInternship] =
     useState<Internship | null>(null);
@@ -340,20 +337,6 @@ export default function InternshipsPage() {
     selectedTypes.length > 0 ||
     selectedEmploymentTypes.length > 0;
 
-  // If an internship is selected, show the detail view
-  const selectedInternship = internships.find(
-    (i) => i.id === selectedInternshipId,
-  );
-
-  if (selectedInternship) {
-    return (
-      <InternshipDetail
-        internship={selectedInternship}
-        onClose={() => setSelectedInternshipId(null)}
-      />
-    );
-  }
-
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Gradient Header Section */}
@@ -535,10 +518,10 @@ export default function InternshipsPage() {
             {/* Internship Grid */}
             <div className="grid md:grid-cols-2 gap-6">
               {internships.map((internship, index) => (
-                <div
+                <Link
+                  href={`/internships/${internship.id}` as any}
                   key={index}
-                  className="bg-white border border-gray-200 rounded-xl p-8 hover:shadow-md hover:border-gray-300 transition-all cursor-pointer"
-                  onClick={() => setSelectedInternshipId(internship.id)}
+                  className="bg-white border border-gray-200 rounded-xl p-8 hover:shadow-md hover:border-gray-300 transition-all cursor-pointer block"
                 >
                   {/* Header */}
                   <div className="flex items-start justify-between mb-6">
@@ -616,7 +599,7 @@ export default function InternshipsPage() {
                   >
                     Apply Now
                   </Button>
-                </div>
+                </Link>
               ))}
             </div>
 
@@ -761,10 +744,11 @@ export default function InternshipsPage() {
         <ApplicationModal
           isOpen={isApplicationModalOpen}
           onClose={() => setIsApplicationModalOpen(false)}
-          internshipTitle={applyingInternship?.title || ""}
-          companyName={applyingInternship?.company || ""}
-          companyLogo={applyingInternship?.logo}
-          workType={applyingInternship?.type}
+          opportunityId={applyingInternship.id}
+          internshipTitle={applyingInternship.title}
+          companyName={applyingInternship.company}
+          companyLogo={applyingInternship.logo}
+          workType={applyingInternship.type}
         />
       )}
     </div>

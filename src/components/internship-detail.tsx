@@ -310,6 +310,7 @@ export function InternshipDetail({
       <ApplicationModal
         isOpen={isApplicationModalOpen}
         onClose={() => setIsApplicationModalOpen(false)}
+        opportunityId={internship.id}
         internshipTitle={internship.title}
         companyName={internship.company}
         companyLogo={internship.logo}

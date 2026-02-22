@@ -1,5 +1,42 @@
 # AGENTS.md - Coding Agent Guidelines
 
+## Current Phase: Phase 1 - Core Platform
+
+**Status**: Step 1.9 in progress (PRD.md Section 12)
+
+### Completed Steps (✅)
+- 1.1: Vitest configuration
+- 1.2: Database schemas (auth, opportunity, application, quiz, profile)
+- 1.3: Schema synced to Neon (`pnpm db:push`)
+- 1.4: UploadThing routes created
+- 1.5: Zod validation schemas (opportunity, application, quiz, profile) - 119 tests passing
+- 1.6: `opportunityRouter` (create, update, delete, getById, list, listByRecruiter, updateStatus)
+- 1.7: `applicationRouter` (create, getById, listByCandidate, listByOpportunity, updateStatus, withdraw)
+- 1.8: `profileRouter` (get, update, getPublic) - 34 tests passing
+- 1.12: `quizRouter` (create, update, getByOpportunity, getForAttempt, submitAttempt, getAttemptResult, listAttempts)
+
+### In Progress (⏳)
+- **1.9: Wire recruiter UI to backend - 40% complete (2/5 pages)**
+  - ✅ Post Opportunity (`/recruiter/post-opportunity`)
+  - ✅ Manage Opportunities (`/recruiter/manage-opportunities`)
+  - ⏸️ View Applications (deferred - mock data)
+  - ⏸️ Quiz Review (deferred - mock data)
+  - ⏸️ Recruiter Dashboard (deferred - mock data)
+
+### Next Steps (📋)
+- 1.10: Build `/internships/[id]` detail page
+- 1.11: Build candidate dashboard + application pages
+- 1.13: Build quiz UI (timer, tab detection, auto-submit)
+- 1.14: Create `src/proxy.ts` for edge route protection
+
+### Test Status
+- **Validation schemas**: 119/119 passing ✅
+- **Profile router**: 34/34 passing ✅
+- **Opportunity/Application/Quiz routers**: Tests have DB race condition issues (non-blocking)
+- **Note**: `fileParallelism: false` added to vitest.config.ts to run tests sequentially
+
+---
+
 ## Project Overview
 
 - **Framework**: Next.js 16 with App Router (React 19)

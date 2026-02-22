@@ -15,7 +15,7 @@ import {
 import { useState } from "react";
 
 interface ApplicantListV2Props {
-  opportunityId: number;
+  opportunityId: string;
   onNavigateBack?: () => void;
 }
 

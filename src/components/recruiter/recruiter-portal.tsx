@@ -39,7 +39,7 @@ interface RecruiterPortalProps {
 
 export function RecruiterPortal({ onExit }: RecruiterPortalProps) {
   const [currentPage, setCurrentPage] = useState<RecruiterPage>("dashboard");
-  const [selectedOpportunityId, setSelectedOpportunityId] = useState<number>(1);
+  const [selectedOpportunityId, setSelectedOpportunityId] = useState<string>("");
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 

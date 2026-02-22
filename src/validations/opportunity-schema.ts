@@ -23,7 +23,7 @@ export const createOpportunitySchema = z.object({
     .nullable()
     .optional(),
   duration: z.string().optional(),
-  deadline: z.date().refine((date) => date > new Date(), {
+  deadline: z.coerce.date().refine((date) => date > new Date(), {
     message: "Deadline must be in the future",
   }),
   positions: z
@@ -59,7 +59,7 @@ const updateBaseSchema = z.object({
     .nullable()
     .optional(),
   duration: z.string().optional(),
-  deadline: z.date().refine((date) => date > new Date(), {
+  deadline: z.coerce.date().refine((date) => date > new Date(), {
     message: "Deadline must be in the future",
   }).optional(),
   positions: z

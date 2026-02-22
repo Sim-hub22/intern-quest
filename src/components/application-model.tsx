@@ -1,13 +1,20 @@
+"use client";
+
 import {
   Check,
   ChevronLeft,
   ChevronRight,
   FileText,
+  Loader2,
   Upload,
   X,
 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
+
+import { trpcClient } from "@/lib/trpc";
+import { useUploadThing } from "@/server/uploadthing/react";
+
 import { ApplicationSuccessModal } from "./application-success-modal";
 import { Button } from "./ui/button";
 import { Checkbox } from "./ui/checkbox";
@@ -24,6 +31,7 @@ import { Textarea } from "./ui/textarea";
 interface ApplicationModalProps {
   isOpen: boolean;
   onClose: () => void;
+  opportunityId: string; // Added: Required for submission
   internshipTitle: string;
   companyName: string;
   companyLogo?: string;
@@ -40,6 +48,7 @@ const APPLICATION_STEPS = [
 export function ApplicationModal({
   isOpen,
   onClose,
+  opportunityId,
   internshipTitle,
   companyName,
   companyLogo,
@@ -47,41 +56,79 @@ export function ApplicationModal({
 }: ApplicationModalProps) {
   const [currentStep, setCurrentStep] = useState(1);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isUploadingResume, setIsUploadingResume] = useState(false);
+  const [isUploadingCoverLetter, setIsUploadingCoverLetter] = useState(false);
+
   const [formData, setFormData] = useState({
     fullName: "",
     email: "",
     phone: "",
     linkedinUrl: "",
     portfolioUrl: "",
-    resume: null as File | null,
-    coverLetter: null as File | null,
+    resumeFile: null as File | null,
+    resumeUrl: "", // URL from UploadThing
+    coverLetterFile: null as File | null,
+    coverLetterText: "", // Text cover letter (alternative to file)
     whyInterested: "",
     relevantExperience: "",
     agreedToTerms: false,
   });
 
+  const { startUpload: startResumeUpload } = useUploadThing("resumeUpload");
+  const { startUpload: startCoverLetterUpload } =
+    useUploadThing("coverLetterUpload");
+
   const handleInputChange = (field: string, value: unknown) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
-  const handleFileUpload = (
-    field: "resume" | "coverLetter",
+  const handleFileUpload = async (
+    field: "resumeFile" | "coverLetterFile",
     e: React.ChangeEvent<HTMLInputElement>,
   ) => {
     const file = e.target.files?.[0];
-    if (file) {
-      if (file.size > 5 * 1024 * 1024) {
-        toast.error("File size should not exceed 5MB");
-        return;
+    if (!file) return;
+
+    // Validate file
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("File size should not exceed 5MB");
+      return;
+    }
+    if (!file.name.match(/\.(pdf)$/i)) {
+      toast.error("Only PDF files are allowed");
+      return;
+    }
+
+    // Store file locally
+    handleInputChange(field, file);
+
+    // Upload to UploadThing
+    try {
+      if (field === "resumeFile") {
+        setIsUploadingResume(true);
+        const result = await startResumeUpload([file]);
+        if (result && result[0]?.url) {
+          handleInputChange("resumeUrl", result[0].url);
+          toast.success("Resume uploaded successfully");
+        }
+      } else {
+        setIsUploadingCoverLetter(true);
+        const result = await startCoverLetterUpload([file]);
+        if (result && result[0]?.url) {
+          // Store cover letter URL or text - for now, we'll use text field
+          toast.success("Cover letter uploaded successfully");
+        }
       }
-      if (!file.name.match(/\.(pdf|doc|docx)$/i)) {
-        toast.error("Only PDF, DOC, and DOCX files are allowed");
-        return;
+    } catch (error) {
+      toast.error("Upload failed. Please try again.");
+      handleInputChange(field, null);
+    } finally {
+      if (field === "resumeFile") {
+        setIsUploadingResume(false);
+      } else {
+        setIsUploadingCoverLetter(false);
       }
-      handleInputChange(field, file);
-      toast.success(
-        `${field === "resume" ? "Resume" : "Cover letter"} uploaded successfully`,
-      );
     }
   };
 
@@ -98,8 +145,15 @@ export function ApplicationModal({
         }
         break;
       case 2:
-        if (!formData.resume || !formData.coverLetter) {
-          toast.error("Please upload both resume and cover letter");
+        if (!formData.resumeFile && !formData.resumeUrl) {
+          toast.error("Please upload your resume");
+          return false;
+        }
+        // Cover letter is now optional or text-based
+        if (!formData.coverLetterText || formData.coverLetterText.length < 50) {
+          toast.error(
+            "Please write a cover letter (at least 50 characters)",
+          );
           return false;
         }
         break;
@@ -133,8 +187,20 @@ export function ApplicationModal({
     }
   };
 
-  const handleSubmit = () => {
-    if (validateStep()) {
+  const handleSubmit = async () => {
+    if (!validateStep()) return;
+
+    setIsSubmitting(true);
+    try {
+      // Combine cover letter text with answers to additional questions
+      const fullCoverLetter = `${formData.coverLetterText}\n\n---\n\nWhy I'm interested:\n${formData.whyInterested}\n\nRelevant experience:\n${formData.relevantExperience}`;
+
+      await trpcClient.application.create.mutate({
+        opportunityId,
+        coverLetter: fullCoverLetter,
+        resumeUrl: formData.resumeUrl || undefined,
+      });
+
       toast.success("Application submitted successfully!");
       onClose();
       setTimeout(() => {
@@ -146,13 +212,20 @@ export function ApplicationModal({
           phone: "",
           linkedinUrl: "",
           portfolioUrl: "",
-          resume: null,
-          coverLetter: null,
+          resumeFile: null,
+          resumeUrl: "",
+          coverLetterFile: null,
+          coverLetterText: "",
           whyInterested: "",
           relevantExperience: "",
           agreedToTerms: false,
         });
       }, 500);
+    } catch (error: any) {
+      console.error("Application submission error:", error);
+      toast.error(error.message || "Failed to submit application. Please try again.");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -276,7 +349,11 @@ export function ApplicationModal({
                 Upload Resume <span className="text-red-500">*</span>
               </Label>
               <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-blue-400 transition-colors">
-                <Upload className="h-10 w-10 mx-auto text-gray-400 mb-3" />
+                {isUploadingResume ? (
+                  <Loader2 className="h-10 w-10 mx-auto text-blue-600 animate-spin mb-3" />
+                ) : (
+                  <Upload className="h-10 w-10 mx-auto text-gray-400 mb-3" />
+                )}
                 <div className="mb-2">
                   <Label
                     htmlFor="resume-upload"
@@ -286,21 +363,22 @@ export function ApplicationModal({
                   </Label>
                   <span className="text-gray-600"> or drag and drop</span>
                 </div>
-                <p className="text-sm text-gray-500">PDF or DOC (max. 5MB)</p>
+                <p className="text-sm text-gray-500">PDF only (max. 4MB)</p>
                 <Input
                   id="resume-upload"
                   type="file"
-                  accept=".pdf,.doc,.docx"
+                  accept=".pdf"
                   className="hidden"
-                  onChange={(e) => handleFileUpload("resume", e)}
+                  onChange={(e) => handleFileUpload("resumeFile", e)}
+                  disabled={isUploadingResume}
                 />
               </div>
-              {formData.resume && (
+              {formData.resumeFile && (
                 <div className="mt-3 bg-blue-50 border border-blue-200 rounded-lg p-3 flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <FileText className="h-5 w-5 text-blue-600" />
                     <span className="text-sm font-medium text-gray-900">
-                      {formData.resume.name}
+                      {formData.resumeFile.name}
                     </span>
                   </div>
                   <Check className="h-5 w-5 text-green-600" />
@@ -309,40 +387,24 @@ export function ApplicationModal({
             </div>
 
             <div>
-              <Label className="text-sm font-medium text-gray-700 mb-3 block">
+              <Label
+                htmlFor="coverLetterText"
+                className="text-sm font-medium text-gray-700 mb-2 block"
+              >
                 Cover Letter <span className="text-red-500">*</span>
               </Label>
-              <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-blue-400 transition-colors">
-                <Upload className="h-10 w-10 mx-auto text-gray-400 mb-3" />
-                <div className="mb-2">
-                  <Label
-                    htmlFor="cover-letter-upload"
-                    className="cursor-pointer text-blue-600 hover:text-blue-700 font-medium"
-                  >
-                    Click to upload
-                  </Label>
-                  <span className="text-gray-600"> or drag and drop</span>
-                </div>
-                <p className="text-sm text-gray-500">PDF or DOC (max. 5MB)</p>
-                <Input
-                  id="cover-letter-upload"
-                  type="file"
-                  accept=".pdf,.doc,.docx"
-                  className="hidden"
-                  onChange={(e) => handleFileUpload("coverLetter", e)}
-                />
-              </div>
-              {formData.coverLetter && (
-                <div className="mt-3 bg-blue-50 border border-blue-200 rounded-lg p-3 flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <FileText className="h-5 w-5 text-blue-600" />
-                    <span className="text-sm font-medium text-gray-900">
-                      {formData.coverLetter.name}
-                    </span>
-                  </div>
-                  <Check className="h-5 w-5 text-green-600" />
-                </div>
-              )}
+              <Textarea
+                id="coverLetterText"
+                placeholder="Write your cover letter here (minimum 50 characters)..."
+                className="min-h-[200px] resize-none"
+                value={formData.coverLetterText}
+                onChange={(e) =>
+                  handleInputChange("coverLetterText", e.target.value)
+                }
+              />
+              <p className="text-xs text-gray-500 mt-1.5">
+                {formData.coverLetterText.length} / 2000 characters
+              </p>
             </div>
           </div>
         );
@@ -438,24 +500,25 @@ export function ApplicationModal({
             </div>
 
             <div className="bg-gray-50 rounded-lg p-5">
-              <h3 className="font-semibold text-gray-900 mb-4">Documents</h3>
+              <h3 className="font-semibold text-gray-900 mb-4">Documents & Cover Letter</h3>
               <div className="space-y-2.5">
-                {formData.resume && (
+                {formData.resumeFile && (
                   <div className="flex items-center gap-2">
                     <FileText className="h-5 w-5 text-blue-600" />
                     <span className="text-sm font-medium text-gray-900">
-                      {formData.resume.name}
+                      Resume: {formData.resumeFile.name}
                     </span>
                     <Check className="h-4 w-4 text-green-600 ml-auto" />
                   </div>
                 )}
-                {formData.coverLetter && (
-                  <div className="flex items-center gap-2">
-                    <FileText className="h-5 w-5 text-blue-600" />
-                    <span className="text-sm font-medium text-gray-900">
-                      {formData.coverLetter.name}
-                    </span>
-                    <Check className="h-4 w-4 text-green-600 ml-auto" />
+                {formData.coverLetterText && (
+                  <div className="mt-3">
+                    <p className="text-sm font-medium text-gray-900 mb-2">
+                      Cover Letter Preview:
+                    </p>
+                    <p className="text-sm text-gray-700 line-clamp-4 bg-white p-3 rounded border">
+                      {formData.coverLetterText}
+                    </p>
                   </div>
                 )}
               </div>
@@ -605,11 +668,20 @@ export function ApplicationModal({
             ) : (
               <Button
                 onClick={handleSubmit}
-                disabled={!formData.agreedToTerms}
-                className="bg-green-600 hover:bg-green-700 text-white gap-2 h-11 px-6 text-base"
+                disabled={!formData.agreedToTerms || isSubmitting}
+                className="bg-green-600 hover:bg-green-700 text-white gap-2 h-11 px-6 text-base disabled:opacity-50"
               >
-                <Check className="h-5 w-5" />
-                Submit Application
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="h-5 w-5 animate-spin" />
+                    Submitting...
+                  </>
+                ) : (
+                  <>
+                    <Check className="h-5 w-5" />
+                    Submit Application
+                  </>
+                )}
               </Button>
             )}
           </div>

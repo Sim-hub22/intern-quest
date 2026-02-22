@@ -176,17 +176,36 @@ export const applicationRouter = router({
 
       const total = countResult?.count ?? 0;
 
-      // Get applications
-      const applications = await db
-        .select()
+      // Get applications with opportunity data
+      const applicationsWithOpportunity = await db
+        .select({
+          id: application.id,
+          opportunityId: application.opportunityId,
+          candidateId: application.candidateId,
+          coverLetter: application.coverLetter,
+          resumeUrl: application.resumeUrl,
+          status: application.status,
+          appliedAt: application.appliedAt,
+          updatedAt: application.updatedAt,
+          opportunity: {
+            id: opportunity.id,
+            title: opportunity.title,
+            category: opportunity.category,
+            type: opportunity.type,
+            mode: opportunity.mode,
+            deadline: opportunity.deadline,
+            status: opportunity.status,
+          },
+        })
         .from(application)
+        .leftJoin(opportunity, eq(application.opportunityId, opportunity.id))
         .where(and(...conditions))
         .orderBy(desc(application.appliedAt))
         .limit(limit)
         .offset(offset ?? 0);
 
       return {
-        applications,
+        applications: applicationsWithOpportunity,
         total,
       };
     }),

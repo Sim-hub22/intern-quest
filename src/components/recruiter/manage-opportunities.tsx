@@ -1,5 +1,6 @@
 "use client";
 
+import { authClient } from "@/lib/auth-client";
 import { trpcClient } from "@/lib/trpc";
 import {
   Calendar,
@@ -37,6 +38,7 @@ export function ManageOpportunitiesV2({
   onNavigateBack,
   onNavigateToApplicants,
 }: ManageOpportunitiesV2Props) {
+  const { data: session } = authClient.useSession();
   const [searchQuery, setSearchQuery] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
@@ -46,13 +48,18 @@ export function ManageOpportunitiesV2({
 
   // Fetch opportunities on mount
   useEffect(() => {
-    fetchOpportunities();
-  }, []);
+    if (session?.user?.id) {
+      fetchOpportunities();
+    }
+  }, [session?.user?.id]);
 
   const fetchOpportunities = async () => {
+    if (!session?.user?.id) return;
+    
     try {
       setIsLoading(true);
-      const result = await trpcClient.opportunity.list.query({
+      const result = await trpcClient.opportunity.listByRecruiter.query({
+        recruiterId: session.user.id,
         limit: 100, // Get all for now, we'll implement pagination later
       });
       setOpportunities(result.opportunities);
